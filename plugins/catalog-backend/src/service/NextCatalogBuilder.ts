@@ -84,12 +84,17 @@ import { LocationService } from './types';
 import { connectEntityProviders } from '../processing/connectEntityProviders';
 import { CatalogPermissionRule } from '../permissions/types';
 import * as catalogPermissionRules from '../permissions/rules';
+import {
+  createConditionTransformer,
+  ServerPermissionClient,
+} from '@backstage/plugin-permission-node';
 
 export type CatalogEnvironment = {
   logger: Logger;
   database: PluginDatabaseManager;
   config: Config;
   reader: UrlReader;
+  permissions: ServerPermissionClient;
 };
 
 /**
@@ -344,7 +349,7 @@ export class NextCatalogBuilder {
     locationService: LocationService;
     router: Router;
   }> {
-    const { config, database, logger } = this.env;
+    const { config, database, logger, permissions } = this.env;
 
     const policy = this.buildEntityPolicy();
     const processors = this.buildProcessors();
@@ -373,7 +378,11 @@ export class NextCatalogBuilder {
       parser,
       policy,
     });
-    const entitiesCatalog = new NextEntitiesCatalog(dbClient);
+    const entitiesCatalog = new NextEntitiesCatalog(
+      dbClient,
+      permissions,
+      createConditionTransformer(this.permissionRules),
+    );
     const stitcher = new Stitcher(dbClient, logger);
 
     const locationStore = new DefaultLocationStore(dbClient);

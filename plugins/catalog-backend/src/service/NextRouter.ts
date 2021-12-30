@@ -24,9 +24,10 @@ import {
 } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import { NotFoundError } from '@backstage/errors';
+import { IdentityClient } from '@backstage/plugin-auth-backend';
 import { RESOURCE_TYPE_CATALOG_ENTITY } from '@backstage/plugin-catalog-common';
 import { createPermissionIntegrationRouter } from '@backstage/plugin-permission-node';
-import express from 'express';
+import express, { Request } from 'express';
 import Router from 'express-promise-router';
 import { Logger } from 'winston';
 import yn from 'yn';
@@ -97,6 +98,7 @@ export async function createNextRouter(
           filter: parseEntityFilterParams(req.query),
           fields: parseEntityTransformParams(req.query),
           pagination: parseEntityPaginationParams(req.query),
+          authorizationToken: getAuthToken(req),
         });
 
         // Add a Link header to the next page
@@ -114,6 +116,7 @@ export async function createNextRouter(
         const { uid } = req.params;
         const { entities } = await entitiesCatalog.entities({
           filter: basicEntityFilter({ 'metadata.uid': uid }),
+          authorizationToken: getAuthToken(req),
         });
         if (!entities.length) {
           throw new NotFoundError(`No entity with uid ${uid}`);
@@ -133,6 +136,7 @@ export async function createNextRouter(
             'metadata.namespace': namespace,
             'metadata.name': name,
           }),
+          authorizationToken: getAuthToken(req),
         });
         if (!entities.length) {
           throw new NotFoundError(
@@ -213,4 +217,8 @@ async function getEntityResource(
   });
 
   return entities[0];
+}
+
+function getAuthToken(request: Request) {
+  return IdentityClient.getBearerToken(request.header('authorization'));
 }
