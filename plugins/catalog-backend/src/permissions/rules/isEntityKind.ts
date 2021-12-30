@@ -25,9 +25,8 @@ export const isEntityKind = {
   name: 'IS_ENTITY_KIND',
   description: 'Allow entities with the specified kind',
   apply(resource: Entity, kinds: string[]) {
-    return kinds
-      .map(kind => kind.toLocaleLowerCase('en-US'))
-      .some(kind => kind === resource.kind.toLocaleLowerCase('en-US'));
+    const resourceKind = resource.kind.toLocaleLowerCase('en-US');
+    return kinds.some(kind => kind.toLocaleLowerCase('en-US') === resourceKind);
   },
   toQuery(kinds: string[]): EntitiesSearchFilter {
     return {
