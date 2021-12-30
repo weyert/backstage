@@ -22,7 +22,12 @@ import {
   Lifecycle,
   Page,
 } from '@backstage/core-components';
+import { useApi } from '@backstage/core-plugin-api';
 import { CatalogResultListItem } from '@backstage/plugin-catalog';
+import {
+  catalogApiRef,
+  CATALOG_FILTER_EXISTS,
+} from '@backstage/plugin-catalog-react';
 import {
   DefaultResultListItem,
   SearchBar,
@@ -30,6 +35,7 @@ import {
   SearchResult,
   SearchResultPager,
   SearchType,
+  useSearch,
 } from '@backstage/plugin-search';
 import { DocsResultListItem } from '@backstage/plugin-techdocs';
 import { Grid, List, makeStyles, Paper, Theme } from '@material-ui/core';
@@ -52,6 +58,9 @@ const useStyles = makeStyles((theme: Theme) => ({
 
 const SearchPage = () => {
   const classes = useStyles();
+  const { types } = useSearch();
+  const catalogApi = useApi(catalogApiRef);
+
   return (
     <Page themeId="home">
       <Header title="Search" subtitle={<Lifecycle alpha />} />
@@ -80,6 +89,27 @@ const SearchPage = () => {
               ]}
             />
             <Paper className={classes.filters}>
+              {types.includes('techdocs') && (
+                <SearchFilter.Autocomplete
+                  className={classes.filter}
+                  label="Entity"
+                  name="name"
+                  asyncValues={async partial => {
+                    // Return a list of entitis which are documented.
+                    const { items } = await catalogApi.getEntities({
+                      fields: ['metadata.name'],
+                      filter: {
+                        'metadata.annotations.backstage.io/techdocs-ref':
+                          CATALOG_FILTER_EXISTS,
+                      },
+                    });
+
+                    return items
+                      .map(entity => entity.metadata.name)
+                      .filter(name => name.includes(partial));
+                  }}
+                />
+              )}
               <SearchFilter.Select
                 className={classes.filter}
                 name="kind"
