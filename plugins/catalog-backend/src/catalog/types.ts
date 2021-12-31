@@ -15,6 +15,7 @@
  */
 
 import { Entity, EntityRelationSpec } from '@backstage/catalog-model';
+import { AuthorizeResponse } from '@backstage/plugin-permission-common';
 
 /**
  * A filter expression for entities.
@@ -70,7 +71,6 @@ export type EntitiesRequest = {
   filter?: EntityFilter;
   fields?: (entity: Entity) => Entity;
   pagination?: EntityPagination;
-  authorizationToken?: string;
 };
 
 export type EntitiesResponse = {

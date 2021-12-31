@@ -25,13 +25,21 @@ import {
 import { Config } from '@backstage/config';
 import { NotFoundError } from '@backstage/errors';
 import { IdentityClient } from '@backstage/plugin-auth-backend';
-import { RESOURCE_TYPE_CATALOG_ENTITY } from '@backstage/plugin-catalog-common';
-import { createPermissionIntegrationRouter } from '@backstage/plugin-permission-node';
+import {
+  catalogEntityReadPermission,
+  RESOURCE_TYPE_CATALOG_ENTITY,
+} from '@backstage/plugin-catalog-common';
+import { AuthorizeResult } from '@backstage/plugin-permission-common';
+import {
+  ConditionTransformer,
+  createPermissionIntegrationRouter,
+  ServerPermissionClient,
+} from '@backstage/plugin-permission-node';
 import express, { Request } from 'express';
 import Router from 'express-promise-router';
 import { Logger } from 'winston';
 import yn from 'yn';
-import { EntitiesCatalog } from '../catalog';
+import { EntitiesCatalog, EntityFilter } from '../catalog';
 import { LocationAnalyzer } from '../ingestion/types';
 import { CatalogPermissionRule } from '../permissions/types';
 import {
@@ -51,6 +59,8 @@ export interface NextRouterOptions {
   logger: Logger;
   config: Config;
   permissionRules?: CatalogPermissionRule[];
+  permissionApi: ServerPermissionClient;
+  transformConditions: ConditionTransformer<EntityFilter>;
 }
 
 export async function createNextRouter(
@@ -64,6 +74,8 @@ export async function createNextRouter(
     config,
     logger,
     permissionRules,
+    permissionApi,
+    transformConditions,
   } = options;
 
   const router = Router();
@@ -94,11 +106,32 @@ export async function createNextRouter(
         }),
       )
       .get('/entities', async (req, res) => {
+        const authorizeResponse = (
+          await permissionApi.authorize(
+            [{ permission: catalogEntityReadPermission }],
+            { token: getAuthToken(req) },
+          )
+        )[0];
+        if (authorizeResponse.result === AuthorizeResult.DENY) {
+          res.json([]);
+          return;
+        }
+        let filter = parseEntityFilterParams(req.query);
+        if (authorizeResponse.result === AuthorizeResult.CONDITIONAL) {
+          const conditionalAuthFilter = transformConditions(
+            authorizeResponse.conditions,
+          );
+          filter = filter
+            ? {
+                allOf: [conditionalAuthFilter, filter],
+              }
+            : conditionalAuthFilter;
+        }
+
         const { entities, pageInfo } = await entitiesCatalog.entities({
-          filter: parseEntityFilterParams(req.query),
+          filter,
           fields: parseEntityTransformParams(req.query),
           pagination: parseEntityPaginationParams(req.query),
-          authorizationToken: getAuthToken(req),
         });
 
         // Add a Link header to the next page

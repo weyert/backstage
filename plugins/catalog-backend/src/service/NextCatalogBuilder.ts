@@ -378,11 +378,7 @@ export class NextCatalogBuilder {
       parser,
       policy,
     });
-    const entitiesCatalog = new NextEntitiesCatalog(
-      dbClient,
-      permissions,
-      createConditionTransformer(this.permissionRules),
-    );
+    const entitiesCatalog = new NextEntitiesCatalog(dbClient);
     const stitcher = new Stitcher(dbClient, logger);
 
     const locationStore = new DefaultLocationStore(dbClient);
@@ -418,6 +414,8 @@ export class NextCatalogBuilder {
       logger,
       config,
       permissionRules: this.permissionRules,
+      permissionApi: permissions,
+      transformConditions: createConditionTransformer(this.permissionRules),
     });
 
     await connectEntityProviders(processingDatabase, entityProviders);
