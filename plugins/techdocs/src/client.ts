@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-import { EntityName } from '@backstage/catalog-model';
+import { EntityName, stringifyEntityRef } from '@backstage/catalog-model';
 import { Config } from '@backstage/config';
 import { DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
 import { NotFoundError, ResponseError } from '@backstage/errors';
+import {
+  AuthorizeResult,
+  PermissionClient,
+  techdocsReadPermission,
+} from '@backstage/plugin-permission-common';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { SyncResult, TechDocsApi, TechDocsStorageApi } from './api';
 import { TechDocsEntityMetadata, TechDocsMetadata } from './types';
@@ -114,6 +119,7 @@ export class TechDocsStorageClient implements TechDocsStorageApi {
   public configApi: Config;
   public discoveryApi: DiscoveryApi;
   public identityApi: IdentityApi;
+  public permissionApi: PermissionClient;
 
   constructor({
     configApi,
@@ -127,6 +133,10 @@ export class TechDocsStorageClient implements TechDocsStorageApi {
     this.configApi = configApi;
     this.discoveryApi = discoveryApi;
     this.identityApi = identityApi;
+    this.permissionApi = new PermissionClient({
+      discovery: discoveryApi,
+      config: configApi,
+    });
   }
 
   async getApiOrigin(): Promise<string> {
@@ -161,6 +171,20 @@ export class TechDocsStorageClient implements TechDocsStorageApi {
     const storageUrl = await this.getStorageUrl();
     const url = `${storageUrl}/${namespace}/${kind}/${name}/${path}`;
     const token = await this.identityApi.getIdToken();
+
+    // TODO(authorization-framework): this might need more thought - we should make sure
+    // that we're not relying _only_ on frontend permissions to protect access to docs.
+    const authorizeRequest = {
+      permission: techdocsReadPermission,
+      resourceRef: stringifyEntityRef(entityId),
+    };
+    const [{ result }] = await this.permissionApi.authorize(
+      [authorizeRequest],
+      { token },
+    );
+    if (result === AuthorizeResult.DENY) {
+      throw new NotFoundError('Page not found.');
+    }
 
     const request = await fetch(
       `${url.endsWith('/') ? url : `${url}/`}index.html`,

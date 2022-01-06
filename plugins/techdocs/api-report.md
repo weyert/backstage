@@ -15,6 +15,7 @@ import { Entity } from '@backstage/catalog-model';
 import { EntityName } from '@backstage/catalog-model';
 import { IdentityApi } from '@backstage/core-plugin-api';
 import { LocationSpec } from '@backstage/catalog-model';
+import { PermissionClient } from '@backstage/plugin-permission-common';
 import { default as React_2 } from 'react';
 import { RouteRef } from '@backstage/core-plugin-api';
 import { TableColumn } from '@backstage/core-components';
@@ -409,6 +410,8 @@ export class TechDocsStorageClient implements TechDocsStorageApi {
   getStorageUrl(): Promise<string>;
   // (undocumented)
   identityApi: IdentityApi;
+  // (undocumented)
+  permissionApi: PermissionClient;
   syncEntityDocs(
     entityId: EntityName,
     logHandler?: (line: string) => void,
