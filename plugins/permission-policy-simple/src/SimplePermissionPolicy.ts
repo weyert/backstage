@@ -16,7 +16,6 @@
 
 import { BackstageIdentityResponse } from '@backstage/plugin-auth-backend';
 import {
-  AuthorizeRequest,
   AuthorizeResult,
   techdocsReadPermission,
 } from '@backstage/plugin-permission-common';
@@ -24,6 +23,7 @@ import {
   PermissionPolicy,
   createConditionFactory,
   PolicyDecision,
+  PolicyAuthorizeQuery,
 } from '@backstage/plugin-permission-node';
 import {
   conditions as catalogConditions,
@@ -37,7 +37,7 @@ const isComponentType = createConditionFactory(isComponentTypeRule);
 
 export class SimplePermissionPolicy implements PermissionPolicy {
   async handle(
-    request: Omit<AuthorizeRequest, 'resourceRef'>,
+    request: PolicyAuthorizeQuery,
     user?: BackstageIdentityResponse,
   ): Promise<PolicyDecision> {
     if (request.permission.name === techdocsReadPermission.name) {

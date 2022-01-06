@@ -42,6 +42,7 @@
     "@backstage/plugin-permission-backend": "^0.3.0",
     "@backstage/plugin-permission-common": "^0.3.1",
     "@backstage/plugin-permission-node": "^0.3.0",
+    "@backstage/plugin-permission-policy-simple": "^0.1.0",
     "@backstage/plugin-proxy-backend": "^0.2.15",
     "@backstage/plugin-rollbar-backend": "^0.1.18",
     "@backstage/plugin-scaffolder-backend": "^0.15.20",
