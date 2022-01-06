@@ -113,4 +113,7 @@ export type PermissionCriteria<TQuery> =
       not: PermissionCriteria<TQuery>;
     }
   | TQuery;
+
+// @public
+export const techdocsReadPermission: Permission;
 ```
