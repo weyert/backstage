@@ -68,7 +68,6 @@ export class IndexBuilder {
   addCollator({
     collator,
     defaultRefreshIntervalSeconds,
-    visibilityPermission,
   }: RegisterCollatorParameters): void {
     this.logger.info(
       `Added ${collator.constructor.name} collator for type ${collator.type}`,
