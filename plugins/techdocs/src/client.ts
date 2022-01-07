@@ -103,11 +103,8 @@ export class TechDocsClient implements TechDocsApi {
 
 /**
  * API which talks to TechDocs storage to fetch files to render.
-<<<<<<< HEAD
-=======
  *
  * @public
->>>>>>> 31c54b8ea2 (Make the techdocs APIs use the FetchApi)
  */
 export class TechDocsStorageClient implements TechDocsStorageApi {
   public configApi: Config;
