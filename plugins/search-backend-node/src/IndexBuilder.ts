@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Permission } from '@backstage/plugin-permission-common';
 import {
   DocumentCollator,
   DocumentDecorator,
@@ -40,18 +41,24 @@ type IndexBuilderOptions = {
 export class IndexBuilder {
   private collators: Record<string, CollatorEnvelope>;
   private decorators: Record<string, DocumentDecorator[]>;
+  private visibilityPermissions: Record<string, Permission | undefined>;
   private searchEngine: SearchEngine;
   private logger: Logger;
 
   constructor({ logger, searchEngine }: IndexBuilderOptions) {
     this.collators = {};
     this.decorators = {};
+    this.visibilityPermissions = {};
     this.logger = logger;
     this.searchEngine = searchEngine;
   }
 
   getSearchEngine(): SearchEngine {
     return this.searchEngine;
+  }
+
+  getVisibilityPermissions(): Record<string, Permission | undefined> {
+    return this.visibilityPermissions;
   }
 
   /**
@@ -61,6 +68,7 @@ export class IndexBuilder {
   addCollator({
     collator,
     defaultRefreshIntervalSeconds,
+    visibilityPermission,
   }: RegisterCollatorParameters): void {
     this.logger.info(
       `Added ${collator.constructor.name} collator for type ${collator.type}`,
@@ -69,6 +77,7 @@ export class IndexBuilder {
       refreshInterval: defaultRefreshIntervalSeconds,
       collate: collator,
     };
+    this.visibilityPermissions[collator.type] = collator.visibilityPermission;
   }
 
   /**

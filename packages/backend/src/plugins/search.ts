@@ -19,6 +19,7 @@ import {
 } from '@backstage/backend-common';
 import { Config } from '@backstage/config';
 import { DefaultCatalogCollator } from '@backstage/plugin-catalog-backend';
+import { catalogEntityReadPermission } from '@backstage/plugin-catalog-common';
 import { createRouter } from '@backstage/plugin-search-backend';
 import { ElasticSearchSearchEngine } from '@backstage/plugin-search-backend-module-elasticsearch';
 import { PgSearchEngine } from '@backstage/plugin-search-backend-module-pg';
@@ -74,6 +75,7 @@ export default async function createPlugin({
       discovery,
       tokenManager,
     }),
+    visibilityPermission: catalogEntityReadPermission,
   });
 
   indexBuilder.addCollator({
@@ -83,6 +85,7 @@ export default async function createPlugin({
       logger,
       tokenManager,
     }),
+    visibilityPermission: catalogEntityReadPermission,
   });
 
   // The scheduler controls when documents are gathered from collators and sent

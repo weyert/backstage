@@ -84,6 +84,7 @@ export interface DocumentCollator {
    * index name by Search Engines.
    */
   readonly type: string;
+  readonly visibilityPermission?: Permission;
   execute(): Promise<IndexableDocument[]>;
 }
 

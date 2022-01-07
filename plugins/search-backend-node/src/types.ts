@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Permission } from '@backstage/plugin-permission-common';
 import { DocumentCollator, DocumentDecorator } from '@backstage/search-common';
 
 /**
@@ -29,6 +30,12 @@ export interface RegisterCollatorParameters {
    * The collator class responsible for returning all documents of the given type.
    */
   collator: DocumentCollator;
+
+  /**
+   * The {@link @backstage/plugin-permission-common#Permission} that controls
+   * visibility of resources associated with this collator's documents.
+   */
+  visibilityPermission?: Permission;
 }
 
 /**

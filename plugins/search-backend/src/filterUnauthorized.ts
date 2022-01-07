@@ -19,8 +19,8 @@ import {
   AuthorizeRequestOptions,
   AuthorizeResponse,
   AuthorizeResult,
-  PermissionClient,
 } from '@backstage/plugin-permission-common';
+import { ServerPermissionClient } from '@backstage/plugin-permission-node';
 
 const isDefined = <T>(input: T | undefined): input is T => {
   return typeof input !== 'undefined';
@@ -30,7 +30,7 @@ export const filterUnauthorized = async <T>(options: {
   entries: T[];
   toAuthorizeRequest: (entry: T) => AuthorizeRequest | undefined;
   requestOptions?: AuthorizeRequestOptions;
-  permissions: PermissionClient;
+  permissions: ServerPermissionClient;
 }): Promise<T[]> => {
   const { entries, toAuthorizeRequest, permissions, requestOptions } = options;
 

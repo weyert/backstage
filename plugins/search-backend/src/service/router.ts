@@ -19,14 +19,14 @@ import Router from 'express-promise-router';
 import { Logger } from 'winston';
 import { Config } from '@backstage/config';
 import { IdentityClient } from '@backstage/plugin-auth-backend';
-import { PermissionClient } from '@backstage/plugin-permission-common';
+import { ServerPermissionClient } from '@backstage/plugin-permission-node';
 import { SearchQuery, SearchResultSet } from '@backstage/search-common';
 import { SearchEngine } from '@backstage/plugin-search-backend-node';
 import { filterUnauthorized } from '../filterUnauthorized';
 
 export type RouterOptions = {
   engine: SearchEngine;
-  permissions: PermissionClient;
+  permissions: ServerPermissionClient;
   config: Config;
   logger: Logger;
 };

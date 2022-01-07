@@ -18,7 +18,11 @@ import {
   PluginEndpointDiscovery,
   TokenManager,
 } from '@backstage/backend-common';
-import { Entity, RELATION_OWNED_BY } from '@backstage/catalog-model';
+import {
+  Entity,
+  RELATION_OWNED_BY,
+  stringifyEntityRef,
+} from '@backstage/catalog-model';
 import { DocumentCollator } from '@backstage/search-common';
 import fetch from 'node-fetch';
 import unescape from 'lodash/unescape';
@@ -27,6 +31,7 @@ import pLimit from 'p-limit';
 import { Config } from '@backstage/config';
 import { CatalogApi, CatalogClient } from '@backstage/catalog-client';
 import { TechDocsDocument } from '@backstage/techdocs-common';
+import { catalogEntityReadPermission } from '@backstage/plugin-catalog-common';
 
 interface MkSearchIndexDoc {
   title: string;
@@ -148,6 +153,10 @@ export class DefaultTechDocsCollator implements DocumentCollator {
               owner:
                 entity.relations?.find(r => r.type === RELATION_OWNED_BY)
                   ?.target?.name || '',
+              authorization: {
+                permission: catalogEntityReadPermission,
+                resourceRef: stringifyEntityRef(entity),
+              },
             }));
           } catch (e) {
             this.logger.debug(

@@ -19,7 +19,6 @@ import {
   TokenManager,
 } from '@backstage/backend-common';
 import {
-  catalogEntityReadPermission,
   Entity,
   stringifyEntityRef,
   UserEntity,
@@ -31,6 +30,8 @@ import {
   CatalogClient,
   CatalogEntitiesRequest,
 } from '@backstage/catalog-client';
+import { Permission } from '@backstage/plugin-permission-common';
+import { catalogEntityReadPermission } from '@backstage/plugin-catalog-common';
 
 export interface CatalogEntityDocument extends IndexableDocument {
   componentType: string;
@@ -46,6 +47,8 @@ export class DefaultCatalogCollator implements DocumentCollator {
   protected filter?: CatalogEntitiesRequest['filter'];
   protected readonly catalogClient: CatalogApi;
   public readonly type: string = 'software-catalog';
+  public readonly visibilityPermission: Permission =
+    catalogEntityReadPermission;
   protected tokenManager: TokenManager;
 
   static fromConfig(
@@ -132,7 +135,7 @@ export class DefaultCatalogCollator implements DocumentCollator {
         lifecycle: (entity.spec?.lifecycle as string) || '',
         owner: (entity.spec?.owner as string) || '',
         authorization: {
-          permission: catalogEntityReadPermission,
+          permission: this.visibilityPermission,
           resourceRef: stringifyEntityRef(entity),
         },
       };
