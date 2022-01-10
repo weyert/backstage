@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { Entity } from '@backstage/catalog-model';
+import { NotFoundError } from '@backstage/errors';
 import { catalogEntityReadPermission } from '@backstage/plugin-catalog-common';
 import {
   AuthorizeResult,
@@ -27,6 +29,7 @@ import {
   EntityAncestryResponse,
   EntityFilter,
 } from '../catalog/types';
+import { basicEntityFilter } from './request/basicEntityFilter';
 
 export class AuthorizedEntitiesCatalog implements EntitiesCatalog {
   constructor(
@@ -70,8 +73,49 @@ export class AuthorizedEntitiesCatalog implements EntitiesCatalog {
     return this.entitiesCatalog.removeEntityByUid(uid);
   }
 
-  entityAncestry(entityRef: string): Promise<EntityAncestryResponse> {
-    // TODO: Implement permissioning
+  async entityAncestry(
+    entityRef: string,
+    permissionOptions?: { authorizationToken?: string },
+  ): Promise<EntityAncestryResponse> {
+    const authorizeResponse = (
+      await this.permissionApi.authorize(
+        [{ permission: catalogEntityReadPermission, resourceRef: entityRef }],
+        { token: permissionOptions?.authorizationToken },
+      )
+    )[0];
+
+    if (authorizeResponse.result === AuthorizeResult.DENY) {
+      return {
+        rootEntityRef: entityRef,
+        items: [],
+      };
+    }
+
+    if (authorizeResponse.result === AuthorizeResult.CONDITIONAL) {
+      const permissionFilter: EntityFilter = this.transformConditions(
+        authorizeResponse.conditions,
+      );
+      const isEntityAuthorized = async (entity: Entity) => {
+        const uid = entity.metadata.uid;
+        if (!uid) {
+          throw new NotFoundError();
+        }
+        const { entities } = await this.entitiesCatalog.entities({
+          filter: {
+            allOf: [
+              permissionFilter,
+              basicEntityFilter({ 'metadata.uid': uid }),
+            ],
+          },
+          authorizationToken: permissionOptions?.authorizationToken,
+        });
+        return entities.length > 0;
+      };
+      return this.entitiesCatalog.entityAncestry(entityRef, {
+        isEntityAuthorized,
+      });
+    }
+
     return this.entitiesCatalog.entityAncestry(entityRef);
   }
 }

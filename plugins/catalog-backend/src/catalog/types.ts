@@ -134,5 +134,11 @@ export type EntitiesCatalog = {
    *
    * @param entityRef - An entity reference to the root of the tree
    */
-  entityAncestry(entityRef: string): Promise<EntityAncestryResponse>;
+  entityAncestry(
+    entityRef: string,
+    permissionOptions?: {
+      authorizationToken?: string;
+      isEntityAuthorized?: (entity: Entity) => Promise<boolean>;
+    },
+  ): Promise<EntityAncestryResponse>;
 };
