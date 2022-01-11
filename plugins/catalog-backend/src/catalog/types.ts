@@ -136,9 +136,6 @@ export type EntitiesCatalog = {
    */
   entityAncestry(
     entityRef: string,
-    permissionOptions?: {
-      authorizationToken?: string;
-      isEntityAuthorized?: (entity: Entity) => Promise<boolean>;
-    },
+    authorizationToken?: string,
   ): Promise<EntityAncestryResponse>;
 };

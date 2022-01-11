@@ -209,12 +209,7 @@ export class NextEntitiesCatalog implements EntitiesCatalog {
       .delete();
   }
 
-  async entityAncestry(
-    rootRef: string,
-    permissionOptions?: {
-      isEntityAuthorized: (entity: Entity) => Promise<boolean>;
-    },
-  ): Promise<EntityAncestryResponse> {
+  async entityAncestry(rootRef: string): Promise<EntityAncestryResponse> {
     const [rootRow] = await this.database<DbRefreshStateRow>('refresh_state')
       .leftJoin<DbFinalEntitiesRow>('final_entities', {
         'refresh_state.entity_id': 'final_entities.entity_id',
@@ -259,13 +254,10 @@ export class NextEntitiesCatalog implements EntitiesCatalog {
 
       const parentRefs: string[] = [];
       for (const { parentEntityRef, parentEntityJson } of parentRows) {
-        const parentEntity = JSON.parse(parentEntityJson);
-        if (await permissionOptions?.isEntityAuthorized(parentEntity)) {
-          parentRefs.push(parentEntityRef);
-          if (!seenEntityRefs.has(parentEntityRef)) {
-            seenEntityRefs.add(parentEntityRef);
-            todo.push(parentEntity);
-          }
+        parentRefs.push(parentEntityRef);
+        if (!seenEntityRefs.has(parentEntityRef)) {
+          seenEntityRefs.add(parentEntityRef);
+          todo.push(JSON.parse(parentEntityJson));
         }
       }
 
