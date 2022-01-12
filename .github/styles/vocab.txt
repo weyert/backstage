@@ -17,7 +17,6 @@ autoselect
 Avro
 backported
 backrub
-backported
 Bigtable
 Billett
 Bitbucket
