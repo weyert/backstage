@@ -74,12 +74,12 @@ export class AuthorizedEntitiesCatalog implements EntitiesCatalog {
 
   async entityAncestry(
     entityRef: string,
-    authorizationToken?: string,
+    options?: { authorizationToken?: string },
   ): Promise<EntityAncestryResponse> {
     const rootEntityAuthorizeResponse = (
       await this.permissionApi.authorize(
         [{ permission: catalogEntityReadPermission, resourceRef: entityRef }],
-        { token: authorizationToken },
+        { token: options?.authorizationToken },
       )
     )[0];
     if (rootEntityAuthorizeResponse.result === AuthorizeResult.DENY) {
@@ -92,7 +92,7 @@ export class AuthorizedEntitiesCatalog implements EntitiesCatalog {
         permission: catalogEntityReadPermission,
         resourceRef: stringifyEntityRef(item.entity),
       })),
-      { token: authorizationToken },
+      { token: options?.authorizationToken },
     );
     const unauthorizedAncestryItems = ancestryResult.items.filter(
       (_, index) => authorizeResponse[index].result === AuthorizeResult.DENY,
@@ -101,17 +101,15 @@ export class AuthorizedEntitiesCatalog implements EntitiesCatalog {
       ancestryItem => stringifyEntityRef(ancestryItem.entity),
     );
     const allUnauthorizedEntityRefs = new Set(
-      rootUnauthorizedEntityRefs.concat(
-        rootUnauthorizedEntityRefs
-          .map(rootEntityRef =>
-            this.findUnauthorizedParents(
-              rootEntityRef,
-              ancestryResult.items,
-              new Set(rootUnauthorizedEntityRefs),
-            ),
-          )
-          .flat(),
-      ),
+      rootUnauthorizedEntityRefs
+        .map(rootEntityRef =>
+          this.findUnauthorizedParents(
+            rootEntityRef,
+            ancestryResult.items,
+            new Set(rootUnauthorizedEntityRefs),
+          ),
+        )
+        .flat(),
     );
     return {
       rootEntityRef: ancestryResult.rootEntityRef,
@@ -139,16 +137,19 @@ export class AuthorizedEntitiesCatalog implements EntitiesCatalog {
       newSeenEntityRefs.add(parentRef),
     );
 
-    return entity.parentEntityRefs
-      .map(parentRef =>
-        seenEntityRefs.has(parentRef)
-          ? []
-          : this.findUnauthorizedParents(
-              parentRef,
-              allAncestryItems,
-              newSeenEntityRefs,
-            ),
-      )
-      .flat();
+    return [
+      entityRef,
+      ...entity.parentEntityRefs
+        .map(parentRef =>
+          seenEntityRefs.has(parentRef)
+            ? []
+            : this.findUnauthorizedParents(
+                parentRef,
+                allAncestryItems,
+                newSeenEntityRefs,
+              ),
+        )
+        .flat(),
+    ];
   }
 }

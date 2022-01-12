@@ -136,6 +136,6 @@ export type EntitiesCatalog = {
    */
   entityAncestry(
     entityRef: string,
-    authorizationToken?: string,
+    options?: { authorizationToken?: string },
   ): Promise<EntityAncestryResponse>;
 };
