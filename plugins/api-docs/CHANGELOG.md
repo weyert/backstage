@@ -1,5 +1,17 @@
 # @backstage/plugin-api-docs
 
+## 0.6.23-next.0
+
+### Patch Changes
+
+- 306d879536: chore(deps): bump `react-syntax-highligher` and `swagger-ui-react`
+- Updated dependencies
+  - @backstage/core-components@0.8.5-next.0
+  - @backstage/plugin-catalog@0.7.9-next.0
+  - @backstage/plugin-catalog-react@0.6.12-next.0
+  - @backstage/catalog-model@0.9.10-next.0
+  - @backstage/core-plugin-api@0.5.1-next.0
+
 ## 0.6.22
 
 ### Patch Changes

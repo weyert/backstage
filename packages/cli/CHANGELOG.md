@@ -1,5 +1,22 @@
 # @backstage/cli
 
+## 0.11.1-next.0
+
+### Patch Changes
+
+- 6e34e2cfbf: Introduce `--deprecated` option to `config:check` to log all deprecated app configuration properties
+
+  ```sh
+  $ yarn backstage-cli config:check --lax --deprecated
+  config:check --lax --deprecated
+  Loaded config from app-config.yaml
+  The configuration key 'catalog.processors.githubOrg' of app-config.yaml is deprecated and may be removed soon. Configure a GitHub integration instead.
+  ```
+
+- Updated dependencies
+  - @backstage/config@0.1.13-next.0
+  - @backstage/config-loader@0.9.3-next.0
+
 ## 0.11.0
 
 ### Minor Changes

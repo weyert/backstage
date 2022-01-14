@@ -124,5 +124,19 @@
     "@backstage/plugin-user-settings": "0.3.16",
     "@backstage/plugin-xcmetrics": "0.2.15"
   },
-  "changesets": []
+  "changesets": [
+    "afraid-gorillas-beg",
+    "beige-crabs-itch",
+    "big-moles-visit",
+    "chilled-cats-marry",
+    "fluffy-countries-beam",
+    "great-bulldogs-provide",
+    "green-candles-remember",
+    "light-trainers-allow",
+    "long-clouds-rest",
+    "neat-rice-stare",
+    "pink-actors-poke",
+    "red-meals-turn",
+    "stale-brooms-fry"
+  ]
 }

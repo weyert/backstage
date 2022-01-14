@@ -1,5 +1,21 @@
 # @backstage/plugin-catalog-backend
 
+## 0.20.1-next.0
+
+### Patch Changes
+
+- dce98a92f7: Now when entities are deleted, the parent entity state is updated such that it will "heal" accidental deletes on the next refresh round.
+- 68edbbeafd: Fix bug with resource loading in permission integration
+- Updated dependencies
+  - @backstage/plugin-permission-common@0.4.0-next.0
+  - @backstage/backend-common@0.10.4-next.0
+  - @backstage/config@0.1.13-next.0
+  - @backstage/plugin-permission-node@0.4.0-next.0
+  - @backstage/plugin-catalog-common@0.1.1-next.0
+  - @backstage/catalog-model@0.9.10-next.0
+  - @backstage/integration@0.7.2-next.0
+  - @backstage/catalog-client@0.5.5-next.0
+
 ## 0.20.0
 
 ### Minor Changes
