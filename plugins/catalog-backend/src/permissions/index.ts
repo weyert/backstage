@@ -14,4 +14,16 @@
  * limitations under the License.
  */
 
+import { RESOURCE_TYPE_CATALOG_ENTITY } from '@backstage/plugin-catalog-common';
+import { createConditionExports } from '@backstage/plugin-permission-node';
+import { permissionRules } from './rules';
+
+export const { conditions, createPolicyDecision } = createConditionExports({
+  pluginId: 'catalog',
+  // TODO(authorization-framework): what if a single plugin has
+  // multiple resource types?
+  resourceType: RESOURCE_TYPE_CATALOG_ENTITY,
+  rules: permissionRules,
+});
+
 export * from './rules';

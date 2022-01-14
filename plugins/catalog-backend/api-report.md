@@ -9,6 +9,8 @@ import { Account } from 'aws-sdk/clients/organizations';
 import { BitbucketIntegration } from '@backstage/integration';
 import { CatalogApi } from '@backstage/catalog-client';
 import { CatalogEntitiesRequest } from '@backstage/catalog-client';
+import { ConditionalPolicyDecision } from '@backstage/plugin-permission-node';
+import { Conditions } from '@backstage/plugin-permission-node';
 import { Config } from '@backstage/config';
 import { DocumentCollator } from '@backstage/search-common';
 import { Entity } from '@backstage/catalog-model';
@@ -27,6 +29,8 @@ import { LocationSpec } from '@backstage/catalog-model';
 import { Logger as Logger_2 } from 'winston';
 import { Organizations } from 'aws-sdk';
 import { PermissionAuthorizer } from '@backstage/plugin-permission-common';
+import { PermissionCondition } from '@backstage/plugin-permission-common';
+import { PermissionCriteria } from '@backstage/plugin-permission-common';
 import { PermissionRule } from '@backstage/plugin-permission-node';
 import { PluginDatabaseManager } from '@backstage/backend-common';
 import { PluginEndpointDiscovery } from '@backstage/backend-common';
@@ -515,6 +519,34 @@ export class CommonDatabase implements Database {
   ): Promise<DbEntityResponse>;
 }
 
+// Warning: (ae-missing-release-tag) "conditions" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const conditions: Conditions<{
+  hasAnnotation: PermissionRule<
+    Entity,
+    EntitiesSearchFilter,
+    [annotation: string]
+  >;
+  hasLabel: PermissionRule<Entity, EntitiesSearchFilter, [label: string]>;
+  hasMetadata: PermissionRule<
+    Entity,
+    EntitiesSearchFilter,
+    [key: string, value?: string | undefined]
+  >;
+  hasSpec: PermissionRule<
+    Entity,
+    EntitiesSearchFilter,
+    [key: string, value?: string | undefined]
+  >;
+  isEntityKind: PermissionRule<Entity, EntitiesSearchFilter, [kinds: string[]]>;
+  isEntityOwner: PermissionRule<
+    Entity,
+    EntitiesSearchFilter,
+    [claims: string[]]
+  >;
+}>;
+
 // @public
 export const createCatalogPermissionRule: <TParams extends unknown[]>(
   rule: PermissionRule<Entity, EntitiesSearchFilter, TParams>,
@@ -533,6 +565,13 @@ export type CreateDatabaseOptions = {
 export function createNextRouter(
   options: NextRouterOptions,
 ): Promise<express.Router>;
+
+// Warning: (ae-missing-release-tag) "createPolicyDecision" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const createPolicyDecision: (
+  conditions: PermissionCriteria<PermissionCondition<unknown[]>>,
+) => ConditionalPolicyDecision;
 
 // Warning: (ae-missing-release-tag) "createRandomRefreshInterval" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
