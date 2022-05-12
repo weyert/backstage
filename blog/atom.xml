@@ -2,12 +2,65 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://backstage.io/blog</id>
     <title>Backstage Software Catalog and Developer Platform Blog</title>
-    <updated>2021-12-20T06:00:00.000Z</updated>
+    <updated>2022-03-17T06:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://backstage.io/blog"/>
     <subtitle>The best place to stay up-to-date with the latest Backstage Software Catalog and Developer Platform news and events.</subtitle>
     <logo>https://backstage.io/undefined</logo>
     <rights>Copyright © 2022 Backstage Project Authors. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our Trademark Usage page: https://www.linuxfoundation.org/trademark-usage</rights>
+    <entry>
+        <title type="html"><![CDATA[New release: Backstage 1.0]]></title>
+        <id>https://backstage.io/blog/2022/03/17/backstage-1.0.html</id>
+        <link href="https://backstage.io/blog/2022/03/17/backstage-1.0.html"/>
+        <updated>2022-03-17T06:00:00.000Z</updated>
+        <summary type="html"><![CDATA[<p><img src="/blog/assets/22-03-16/release.1.0.gif" alt="backstage header"></p>
+<p><em>TL;DR:</em> If you’ve been waiting for Backstage to come out of beta, we’re excited to announce that Backstage 1.0 is here!</p>
+]]></summary>
+        <author>
+            <name>Francesco Corti, Spotify</name>
+            <uri>https://github.com/fcorti/</uri>
+        </author>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Backstage Turns Two!]]></title>
+        <id>https://backstage.io/blog/2022/03/16/backstage-turns-two.html</id>
+        <link href="https://backstage.io/blog/2022/03/16/backstage-turns-two.html"/>
+        <updated>2022-03-16T06:00:00.000Z</updated>
+        <summary type="html"><![CDATA[<p><img src="/blog/assets/22-03-16/backstage-2nd-birthday.gif" alt="A cake celebrating Backstage’s second birthday"></p>
+<p><strong>TLDR:</strong> Backstage has turned two. Of course, this is software, so we expect things to move fast. But when you have a passionate, worldwide community building together, we’ve now seen firsthand just how fast that can be. We’re marking our second year as a community by becoming a CNCF incubating project, reaching 100 public adopters, releasing version 1.0 of the core app, and other very nice birthday gifts. Rather than a toddler finding their feet, Backstage today is beginning to look awfully grown-up for a two-year-old.</p>
+]]></summary>
+        <author>
+            <name>Lee Mills, Spotify</name>
+            <uri>https://github.com/leemills83</uri>
+        </author>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Avoid upgrade surprises with Backstage Upgrade Helper]]></title>
+        <id>https://backstage.io/blog/2022/03/04/backstage-upgrade-helper.html</id>
+        <link href="https://backstage.io/blog/2022/03/04/backstage-upgrade-helper.html"/>
+        <updated>2022-03-04T06:00:00.000Z</updated>
+        <summary type="html"><![CDATA[<p><img src="/blog/assets/22-03-04/backstage-upgrade-helper-post-header.png" alt="backstage header"></p>
+<p><em>TLDR;</em> The Spotify team recently announced <a href="https://backstage.github.io/upgrade-helper">Backstage Upgrade Helper</a>: a tool that helps adopters keep their Backstage application up-to-date. <strong>Spoiler alert</strong>: this is also a hidden and heartwarming tale about the beauty of open source innovation.</p>
+]]></summary>
+        <author>
+            <name>Vincenzo Scamporlino, Spotify</name>
+            <uri>https://github.com/vinzscam</uri>
+        </author>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Say Hi to Backstage homepage templates!]]></title>
+        <id>https://backstage.io/blog/2022/01/25/backstage-homepage-templates.html</id>
+        <link href="https://backstage.io/blog/2022/01/25/backstage-homepage-templates.html"/>
+        <updated>2022-01-25T06:00:00.000Z</updated>
+        <summary type="html"><![CDATA[<p><em>This blog post is co-authored by Emma Indal (<a href="https://github.com/emmaindal">@emmaindal</a>), Spotify.</em></p>
+<p><img src="/blog/assets/22-01-25/homepage-template-blog-post-header.png" alt="homepage template"></p>
+<p><em>TLDR;</em> We’re excited to announce the arrival of homepage templates for Backstage. It can be intimidating to build up your own instance of Backstage, so we decided to make your life a bit easier by giving you an out-of-the-box homepage to hit the ground running. This template can be found in our <a href="https://backstage.io/storybook/?path=/story/plugins-home-templates--default-template">Backstage Storybook</a>, as well as future templates that we build.</p>
+]]></summary>
+        <author>
+            <name>Kat Zhou, Spotify</name>
+            <uri>https://github.com/KatherineZhou</uri>
+        </author>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Backstage Wrapped 2021]]></title>
         <id>https://backstage.io/blog/2021/12/20/backstage-wrapped-2021.html</id>
@@ -65,7 +118,7 @@
         </author>
     </entry>
     <entry>
-        <title type="html"><![CDATA['Announcing the Backstage Search platform: a customizable search tool built just for you']]></title>
+        <title type="html"><![CDATA[Announcing the Backstage Search platform: a customizable search tool built just for you]]></title>
         <id>https://backstage.io/blog/2021/06/24/announcing-backstage-search-platform.html</id>
         <link href="https://backstage.io/blog/2021/06/24/announcing-backstage-search-platform.html"/>
         <updated>2021-06-24T06:00:00.000Z</updated>
@@ -109,7 +162,7 @@
         </author>
     </entry>
     <entry>
-        <title type="html"><![CDATA['New Backstage feature: Kubernetes for Service owners']]></title>
+        <title type="html"><![CDATA[New Backstage feature: Kubernetes for Service owners]]></title>
         <id>https://backstage.io/blog/2021/01/12/new-backstage-feature-kubernetes-for-service-owners.html</id>
         <link href="https://backstage.io/blog/2021/01/12/new-backstage-feature-kubernetes-for-service-owners.html"/>
         <updated>2021-01-12T06:00:00.000Z</updated>
@@ -127,7 +180,8 @@
         <id>https://backstage.io/blog/2020/12/22/stability-index.html</id>
         <link href="https://backstage.io/blog/2020/12/22/stability-index.html"/>
         <updated>2020-12-22T06:00:00.000Z</updated>
-        <summary type="html"><![CDATA[<p><strong>TL;DR</strong> Backstage is heading out of alpha and moving onto the path to stable releases and an eventual version 1.0. As the community and ecosystem continue to grow at an increasing rate, we want to provide a solid foundation for everyone building things in, with, and around Backstage. So, today we’re introducing the <a href="https://backstage.io/docs/overview/stability-index">Stability Index</a> — a simple way to find out how likely (or unlikely) a specific package or plugin inside Backstage might be updated with major changes. By indicating the reliability of key features and APIs, this quick reference will help contributors and adopters better plan and coordinate their development efforts going forward.</p>
+        <summary type="html"><![CDATA[<p>2022-01 update: The stability is now replaced by the <a href="https://backstage.io/docs/overview/versioning-policy">versioning policy</a>.</p>
+<p><strong>TL;DR</strong> Backstage is heading out of alpha and moving onto the path to stable releases and an eventual version 1.0. As the community and ecosystem continue to grow at an increasing rate, we want to provide a solid foundation for everyone building things in, with, and around Backstage. So, today we’re introducing the <a href="https://backstage.io/docs/overview/versioning-policy">Stability Index</a> — a simple way to find out how likely (or unlikely) a specific package or plugin inside Backstage might be updated with major changes. By indicating the reliability of key features and APIs, this quick reference will help contributors and adopters better plan and coordinate their development efforts going forward.</p>
 <p><img src="/blog/assets/2020-12-22/stability-index-hero.gif" alt="Animation cycling between stability index scores"></p>
 ]]></summary>
         <author>
@@ -136,7 +190,7 @@
         </author>
     </entry>
     <entry>
-        <title type="html"><![CDATA['New Cost Insights plugin: The engineer’s solution to taming cloud costs']]></title>
+        <title type="html"><![CDATA[New Cost Insights plugin: The engineer’s solution to taming cloud costs]]></title>
         <id>https://backstage.io/blog/2020/10/22/cost-insights-plugin.html</id>
         <link href="https://backstage.io/blog/2020/10/22/cost-insights-plugin.html"/>
         <updated>2020-10-22T06:00:00.000Z</updated>
@@ -191,7 +245,7 @@
         </author>
     </entry>
     <entry>
-        <title type="html"><![CDATA['Announcing TechDocs: Spotify’s docs-like-code plugin for Backstage']]></title>
+        <title type="html"><![CDATA[Announcing TechDocs: Spotify’s docs-like-code plugin for Backstage]]></title>
         <id>https://backstage.io/blog/2020/09/08/announcing-tech-docs.html</id>
         <link href="https://backstage.io/blog/2020/09/08/announcing-tech-docs.html"/>
         <updated>2020-09-08T06:00:00.000Z</updated>
@@ -246,7 +300,7 @@
         </author>
     </entry>
     <entry>
-        <title type="html"><![CDATA['Starting Phase 2: The Service Catalog']]></title>
+        <title type="html"><![CDATA[Starting Phase 2: The Service Catalog]]></title>
         <id>https://backstage.io/blog/2020/05/22/phase-2-service-catalog.html</id>
         <link href="https://backstage.io/blog/2020/05/22/phase-2-service-catalog.html"/>
         <updated>2020-05-22T06:00:00.000Z</updated>

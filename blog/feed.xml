@@ -4,7 +4,7 @@
         <title>Backstage Software Catalog and Developer Platform Blog</title>
         <link>https://backstage.io/blog</link>
         <description>The best place to stay up-to-date with the latest Backstage Software Catalog and Developer Platform news and events.</description>
-        <lastBuildDate>Mon, 20 Dec 2021 06:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Thu, 17 Mar 2022 06:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <image>
@@ -13,6 +13,43 @@
             <link>https://backstage.io/blog</link>
         </image>
         <copyright>Copyright © 2022 Backstage Project Authors. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our Trademark Usage page: https://www.linuxfoundation.org/trademark-usage</copyright>
+        <item>
+            <title><![CDATA[New release: Backstage 1.0]]></title>
+            <link>https://backstage.io/blog/2022/03/17/backstage-1.0.html</link>
+            <guid>https://backstage.io/blog/2022/03/17/backstage-1.0.html</guid>
+            <pubDate>Thu, 17 Mar 2022 06:00:00 GMT</pubDate>
+            <description><![CDATA[<p><img src="/blog/assets/22-03-16/release.1.0.gif" alt="backstage header"></p>
+<p><em>TL;DR:</em> If you’ve been waiting for Backstage to come out of beta, we’re excited to announce that Backstage 1.0 is here!</p>
+]]></description>
+        </item>
+        <item>
+            <title><![CDATA[Backstage Turns Two!]]></title>
+            <link>https://backstage.io/blog/2022/03/16/backstage-turns-two.html</link>
+            <guid>https://backstage.io/blog/2022/03/16/backstage-turns-two.html</guid>
+            <pubDate>Wed, 16 Mar 2022 06:00:00 GMT</pubDate>
+            <description><![CDATA[<p><img src="/blog/assets/22-03-16/backstage-2nd-birthday.gif" alt="A cake celebrating Backstage’s second birthday"></p>
+<p><strong>TLDR:</strong> Backstage has turned two. Of course, this is software, so we expect things to move fast. But when you have a passionate, worldwide community building together, we’ve now seen firsthand just how fast that can be. We’re marking our second year as a community by becoming a CNCF incubating project, reaching 100 public adopters, releasing version 1.0 of the core app, and other very nice birthday gifts. Rather than a toddler finding their feet, Backstage today is beginning to look awfully grown-up for a two-year-old.</p>
+]]></description>
+        </item>
+        <item>
+            <title><![CDATA[Avoid upgrade surprises with Backstage Upgrade Helper]]></title>
+            <link>https://backstage.io/blog/2022/03/04/backstage-upgrade-helper.html</link>
+            <guid>https://backstage.io/blog/2022/03/04/backstage-upgrade-helper.html</guid>
+            <pubDate>Fri, 04 Mar 2022 06:00:00 GMT</pubDate>
+            <description><![CDATA[<p><img src="/blog/assets/22-03-04/backstage-upgrade-helper-post-header.png" alt="backstage header"></p>
+<p><em>TLDR;</em> The Spotify team recently announced <a href="https://backstage.github.io/upgrade-helper">Backstage Upgrade Helper</a>: a tool that helps adopters keep their Backstage application up-to-date. <strong>Spoiler alert</strong>: this is also a hidden and heartwarming tale about the beauty of open source innovation.</p>
+]]></description>
+        </item>
+        <item>
+            <title><![CDATA[Say Hi to Backstage homepage templates!]]></title>
+            <link>https://backstage.io/blog/2022/01/25/backstage-homepage-templates.html</link>
+            <guid>https://backstage.io/blog/2022/01/25/backstage-homepage-templates.html</guid>
+            <pubDate>Tue, 25 Jan 2022 06:00:00 GMT</pubDate>
+            <description><![CDATA[<p><em>This blog post is co-authored by Emma Indal (<a href="https://github.com/emmaindal">@emmaindal</a>), Spotify.</em></p>
+<p><img src="/blog/assets/22-01-25/homepage-template-blog-post-header.png" alt="homepage template"></p>
+<p><em>TLDR;</em> We’re excited to announce the arrival of homepage templates for Backstage. It can be intimidating to build up your own instance of Backstage, so we decided to make your life a bit easier by giving you an out-of-the-box homepage to hit the ground running. This template can be found in our <a href="https://backstage.io/storybook/?path=/story/plugins-home-templates--default-template">Backstage Storybook</a>, as well as future templates that we build.</p>
+]]></description>
+        </item>
         <item>
             <title><![CDATA[Backstage Wrapped 2021]]></title>
             <link>https://backstage.io/blog/2021/12/20/backstage-wrapped-2021.html</link>
@@ -54,7 +91,7 @@
 ]]></description>
         </item>
         <item>
-            <title><![CDATA['Announcing the Backstage Search platform: a customizable search tool built just for you']]></title>
+            <title><![CDATA[Announcing the Backstage Search platform: a customizable search tool built just for you]]></title>
             <link>https://backstage.io/blog/2021/06/24/announcing-backstage-search-platform.html</link>
             <guid>https://backstage.io/blog/2021/06/24/announcing-backstage-search-platform.html</guid>
             <pubDate>Thu, 24 Jun 2021 06:00:00 GMT</pubDate>
@@ -86,7 +123,7 @@
 ]]></description>
         </item>
         <item>
-            <title><![CDATA['New Backstage feature: Kubernetes for Service owners']]></title>
+            <title><![CDATA[New Backstage feature: Kubernetes for Service owners]]></title>
             <link>https://backstage.io/blog/2021/01/12/new-backstage-feature-kubernetes-for-service-owners.html</link>
             <guid>https://backstage.io/blog/2021/01/12/new-backstage-feature-kubernetes-for-service-owners.html</guid>
             <pubDate>Tue, 12 Jan 2021 06:00:00 GMT</pubDate>
@@ -100,12 +137,13 @@
             <link>https://backstage.io/blog/2020/12/22/stability-index.html</link>
             <guid>https://backstage.io/blog/2020/12/22/stability-index.html</guid>
             <pubDate>Tue, 22 Dec 2020 06:00:00 GMT</pubDate>
-            <description><![CDATA[<p><strong>TL;DR</strong> Backstage is heading out of alpha and moving onto the path to stable releases and an eventual version 1.0. As the community and ecosystem continue to grow at an increasing rate, we want to provide a solid foundation for everyone building things in, with, and around Backstage. So, today we’re introducing the <a href="https://backstage.io/docs/overview/stability-index">Stability Index</a> — a simple way to find out how likely (or unlikely) a specific package or plugin inside Backstage might be updated with major changes. By indicating the reliability of key features and APIs, this quick reference will help contributors and adopters better plan and coordinate their development efforts going forward.</p>
+            <description><![CDATA[<p>2022-01 update: The stability is now replaced by the <a href="https://backstage.io/docs/overview/versioning-policy">versioning policy</a>.</p>
+<p><strong>TL;DR</strong> Backstage is heading out of alpha and moving onto the path to stable releases and an eventual version 1.0. As the community and ecosystem continue to grow at an increasing rate, we want to provide a solid foundation for everyone building things in, with, and around Backstage. So, today we’re introducing the <a href="https://backstage.io/docs/overview/versioning-policy">Stability Index</a> — a simple way to find out how likely (or unlikely) a specific package or plugin inside Backstage might be updated with major changes. By indicating the reliability of key features and APIs, this quick reference will help contributors and adopters better plan and coordinate their development efforts going forward.</p>
 <p><img src="/blog/assets/2020-12-22/stability-index-hero.gif" alt="Animation cycling between stability index scores"></p>
 ]]></description>
         </item>
         <item>
-            <title><![CDATA['New Cost Insights plugin: The engineer’s solution to taming cloud costs']]></title>
+            <title><![CDATA[New Cost Insights plugin: The engineer’s solution to taming cloud costs]]></title>
             <link>https://backstage.io/blog/2020/10/22/cost-insights-plugin.html</link>
             <guid>https://backstage.io/blog/2020/10/22/cost-insights-plugin.html</guid>
             <pubDate>Thu, 22 Oct 2020 06:00:00 GMT</pubDate>
@@ -144,7 +182,7 @@
 ]]></description>
         </item>
         <item>
-            <title><![CDATA['Announcing TechDocs: Spotify’s docs-like-code plugin for Backstage']]></title>
+            <title><![CDATA[Announcing TechDocs: Spotify’s docs-like-code plugin for Backstage]]></title>
             <link>https://backstage.io/blog/2020/09/08/announcing-tech-docs.html</link>
             <guid>https://backstage.io/blog/2020/09/08/announcing-tech-docs.html</guid>
             <pubDate>Tue, 08 Sep 2020 06:00:00 GMT</pubDate>
@@ -183,7 +221,7 @@
 ]]></description>
         </item>
         <item>
-            <title><![CDATA['Starting Phase 2: The Service Catalog']]></title>
+            <title><![CDATA[Starting Phase 2: The Service Catalog]]></title>
             <link>https://backstage.io/blog/2020/05/22/phase-2-service-catalog.html</link>
             <guid>https://backstage.io/blog/2020/05/22/phase-2-service-catalog.html</guid>
             <pubDate>Fri, 22 May 2020 06:00:00 GMT</pubDate>
