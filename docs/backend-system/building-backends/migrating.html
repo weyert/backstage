@@ -1,0 +1,371 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Migrating your Backend to the New Backend System · Backstage Software Catalog and Developer Platform</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="How to migrate existing backends to the new backend system"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Migrating your Backend to the New Backend System · Backstage Software Catalog and Developer Platform"/><meta property="og:type" content="website"/><meta property="og:url" content="https://backstage.io/"/><meta property="og:description" content="How to migrate existing backends to the new backend system"/><meta property="og:image" content="https://backstage.io/img/sharing-opengraph.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://backstage.io/img/twitter-summary.png"/><link rel="shortcut icon" href="/img/favicon.ico"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai.min.css"/><link rel="alternate" type="application/atom+xml" href="https://backstage.io/blog/atom.xml" title="Backstage Software Catalog and Developer Platform Blog ATOM Feed"/><link rel="alternate" type="application/rss+xml" href="https://backstage.io/blog/feed.xml" title="Backstage Software Catalog and Developer Platform Blog RSS Feed"/><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-KSEVGGNCJW"></script><script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments); }
+              gtag('js', new Date());
+              gtag('config', 'G-KSEVGGNCJW');
+            </script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono:500,700&amp;display=swap"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://unpkg.com/medium-zoom@1.0.6/dist/medium-zoom.min.js"></script><script type="text/javascript" src="/js/medium-zoom.js"></script><script type="text/javascript" src="/js/dismissable-banner.js"></script><script type="text/javascript" src="/js/scroll-nav-to-view-in-docs.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Backstage Software Catalog and Developer Platform</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://github.com/backstage/backstage" target="_self">GitHub</a></li><li class=""><a href="/docs/overview/what-is-backstage" target="_self">Docs</a></li><li class=""><a href="/plugins" target="_self">Plugins</a></li><li class=""><a href="/blog" target="_self">Blog</a></li><li class=""><a href="/docs/releases/v1.10.0" target="_self">Releases</a></li><li class=""><a href="/demos" target="_self">Demos</a></li><li class=""><a href="/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/backstage/backstage/edit/master/docs/backend-system/building-backends/08-migrating.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">Migrating your Backend to the New Backend System</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="overview"></a><a href="#overview" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overview</h2>
+<p>This section describes how to migrate an existing Backstage backend service
+package (typically in <code>packages/backend</code>) to use the new backend system.</p>
+<p>One of the main benefits of the new backend system is that it abstracts away the
+way that plugins and their dependencies are wired up, leading to a significantly
+simplified backend package that rarely if ever needs to change when plugins or
+their dependencies evolve. You generally don't have to convert all of your
+internal plugins and support classes themselves to the backend system first -
+the migration here will mostly deal with wiring and using compatibility wrappers
+where possible in the backend package itself. We hope that you will find that
+you end up with a much smaller, easier to understand, and easier to maintain
+package as a result of these steps, and then being able to <a href="/docs/backend-system/building-plugins-and-modules/migrating">migrate
+plugins</a> as a separate
+endeavour later.</p>
+<h2><a class="anchor" aria-hidden="true" id="overall-structure"></a><a href="#overall-structure" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Overall Structure</h2>
+<p>Your typical backend package has a few overall component parts:</p>
+<ul>
+<li>An <code>index.ts</code> file that houses all of the creation and wiring together of all
+of the plugins and their dependencies</li>
+<li>A <code>types.ts</code> file that defines the &quot;environment&quot;, i.e. the various
+dependencies that get created by the backend and passed down into each plugin</li>
+<li>A <code>plugins</code> folder which has one file for each plugin, e.g.
+<code>plugins/catalog.ts</code></li>
+</ul>
+<p>The index file has this overall shape:</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">import</span> todo <span class="hljs-keyword">from</span> <span class="hljs-string">'./plugins/todo'</span>; <span class="hljs-comment">// repeated for N plugins</span>
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">makeCreateEnv</span>(<span class="hljs-params">config: Config</span>) </span>{
+  <span class="hljs-keyword">return</span> (plugin: <span class="hljs-built_in">string</span>): <span class="hljs-function"><span class="hljs-params">PluginEnvironment</span> =&gt;</span> {
+    <span class="hljs-comment">// ... build per-plugin environment</span>
+  };
+}
+
+<span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">main</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-comment">// ... early init</span>
+  <span class="hljs-keyword">const</span> createEnv = makeCreateEnv(config);
+  <span class="hljs-keyword">const</span> todoEnv = useHotMemoize(<span class="hljs-keyword">module</span>, () =&gt; createEnv('todo')); // repeated for N plugins
+  const apiRouter = Router();
+  apiRouter.use('/todo', await todo(todoEnv)); // repeated for N plugins
+  // ... wire up and start http server
+}
+
+<span class="hljs-keyword">module</span>.hot?.accept();
+main().catch(...);
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="migrating-the-index-file"></a><a href="#migrating-the-index-file" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Migrating the Index File</h2>
+<p>This migration will try to leave the <code>plugins</code> folder unchanged initially, first
+focusing on removing the environment type and reducing the index file to its
+bare minimum. Then as a later step, we can reduce the <code>plugins</code> folder bit by
+bit, replacing those files generally with one-liners in the index file instead.</p>
+<p>Let's start by establishing the basis of your new index file. You may want to
+comment out its old contents, or renaming the old file to <code>index.backup.ts</code> for
+reference and making a new blank one to work on - whichever works best for you.
+These are our new blank contents in the index file:</p>
+<pre><code class="hljs css language-ts"><span class="hljs-comment">// packages/backend/src/index.ts</span>
+<span class="hljs-keyword">import</span> { createBackend } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/backend-defaults'</span>;
+
+<span class="hljs-keyword">const</span> backend = createBackend();
+backend.start();
+</code></pre>
+<p>Note that the environment builder and the <code>main</code> dance are entirely gone.</p>
+<p>We'll also want to add some backend system packages as dependencies. Run the
+following command:</p>
+<pre><code class="hljs css language-bash"><span class="hljs-comment"># from the repository root</span>
+yarn add --cwd packages/backend @backstage/backend-defaults @backstage/backend-plugin-api
+</code></pre>
+<p>You should now be able to start this up with the familiar <code>yarn workspace backend start</code> command locally and seeing some logs scroll by. But it'll just be
+a blank service with no real features added. So let's stop it with <code>Ctrl+C</code> and
+reintroduce some plugins into the mix.</p>
+<pre><code class="hljs css language-diff"> import { createBackend } from '@backstage/backend-defaults';
+<span class="hljs-addition">+import { legacyPlugin } from '@backstage/backend-common';</span>
+
+ const backend = createBackend();
+<span class="hljs-addition">+backend.add(legacyPlugin('todo', import('./plugins/todo')));</span>
+ backend.start();
+</code></pre>
+<p>The <code>todo</code> plugin used above is just an example and you may not have it enabled
+in your own backend. Feel free to change it to some other plugin that you
+actually have in your <code>plugins</code> folder, for example
+<code>backend.add(legacyPlugin('catalog', import('./plugins/catalog')))</code>.</p>
+<p>The <code>legacyPlugin</code> helper makes it easy to bridge the gap between the old-style
+plugin files and the new backend system. It ensures that the dependencies that
+you used to have to declare by hand in your env are gathered behind the scenes,
+then passes them into the relevant <code>createPlugin</code> export function, and makes
+sure that the route handler it returns is passed into the HTTP router with the
+given prefix.</p>
+<h2><a class="anchor" aria-hidden="true" id="handling-custom-environments"></a><a href="#handling-custom-environments" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Handling Custom Environments</h2>
+<p>In the simple case, what we did above is sufficient, TypeScript is happy, and
+the backend runs with the new feature. If they do, feel free to skip this entire
+section, and deleting <code>types.ts</code>.</p>
+<p>Sometimes though, type errors can be reported on the newly added line, saying
+that parts of the <code>PluginEnvironment</code> type do not match. This happens when the
+environment was changed from the defaults, perhaps with your own custom
+additions. If this is the case in your installation, you still aren't out of
+luck - you can build a customized <code>legacyPlugin</code> function.</p>
+<pre><code class="hljs css language-diff"> import { createBackend } from '@backstage/backend-defaults';
+<span class="hljs-deletion">-import { legacyPlugin } from '@backstage/backend-common';</span>
+<span class="hljs-addition">+import { makeLegacyPlugin, loggerToWinstonLogger } from '@backstage/backend-common';</span>
+<span class="hljs-addition">+import { coreServices } from '@backstage/backend-plugin-api';</span>
+
+<span class="hljs-addition">+const legacyPlugin = makeLegacyPlugin(</span>
+<span class="hljs-addition">+  {</span>
+<span class="hljs-addition">+    cache: coreServices.cache,</span>
+<span class="hljs-addition">+    config: coreServices.config,</span>
+<span class="hljs-addition">+    database: coreServices.database,</span>
+<span class="hljs-addition">+    discovery: coreServices.discovery,</span>
+<span class="hljs-addition">+    logger: coreServices.logger,</span>
+<span class="hljs-addition">+    permissions: coreServices.permissions,</span>
+<span class="hljs-addition">+    scheduler: coreServices.scheduler,</span>
+<span class="hljs-addition">+    tokenManager: coreServices.tokenManager,</span>
+<span class="hljs-addition">+    reader: coreServices.urlReader,</span>
+<span class="hljs-addition">+    identity: coreServices.identity,</span>
+<span class="hljs-addition">+    // ... and your own additions</span>
+<span class="hljs-addition">+  },</span>
+<span class="hljs-addition">+  {</span>
+<span class="hljs-addition">+    logger: log =&gt; loggerToWinstonLogger(log),</span>
+<span class="hljs-addition">+  },</span>
+<span class="hljs-addition">+);</span>
+
+ const backend = createBackend();
+ backend.add(legacyPlugin('todo', import('./plugins/todo')));
+ backend.start();
+</code></pre>
+<p>The first argument to <code>makeLegacyPlugin</code> is the mapping from environment keys to
+references to actual <a href="/docs/backend-system/architecture/services">backend system services</a>.
+The second argument allows you to &quot;tweak&quot; the types of those services to
+something more fitting to your env. For example, you'll see that the logger
+service API type was changed from the raw Winston logger of old, to a different,
+custom API, so we use a helper function to transform that particular one.</p>
+<p>To make additions as mentioned above to the environment, you will start to get
+into the weeds of how the backend system wiring works. You'll need to have a
+service reference and a service factory that performs the actual creation of
+your service. Please see <a href="/docs/backend-system/architecture/services#defining-a-service">the services
+article</a> to learn how to
+create a service ref and its default factory. You can place that code directly
+in the index file for now if you want, or near the actual implementation class
+in question.</p>
+<p>In this example, we'll assume that your added environment field is named
+<code>example</code>, and the created ref is named <code>exampleServiceRef</code>.</p>
+<pre><code class="hljs css language-diff"><span class="hljs-addition">+import { exampleServiceRef } from '&lt;somewhere&gt;'; // if the definition is elsewhere</span>
+
+ const legacyPlugin = makeLegacyPlugin(
+   {
+     // ... the above core services still go here
+<span class="hljs-addition">+    example: exampleServiceRef</span>
+   },
+   {
+     logger: log =&gt; loggerToWinstonLogger(log),
+   },
+ );
+</code></pre>
+<p>After this, your backend will know how to instantiate your thing on demand and
+place it in the legacy plugin environment.</p>
+<blockquote>
+<p>NOTE: If you happen to be dealing with a service ref that does NOT have a
+default implementation, but rather has a separate service factory, then you
+will also need to import that factory and pass it to the <code>services</code> array
+argument of <code>createBackend</code>.</p>
+</blockquote>
+<h2><a class="anchor" aria-hidden="true" id="cleaning-up-the-plugins-folder"></a><a href="#cleaning-up-the-plugins-folder" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Cleaning Up the Plugins Folder</h2>
+<p>For plugins that are private and your own, you can follow a <a href="/docs/backend-system/building-plugins-and-modules/migrating">dedicated migration
+guide</a> as you see fit, at a
+later time.</p>
+<p>For third party backend plugins, in particular the larger core plugins that are
+maintained by the Backstage maintainers, you may find that they have already
+been migrated to the new backend system. This section describes some specific
+such migrations you can make.</p>
+<blockquote>
+<p>NOTE: For each of these, note that your backend still needs to have a
+dependency (e.g. in <code>packages/backend/package.json</code>) to those plugin packages,
+and they still need to be configured properly in your app-config. Those
+mechanisms still work just the same as they used to in the old backend system.</p>
+</blockquote>
+<h3><a class="anchor" aria-hidden="true" id="the-app-plugin"></a><a href="#the-app-plugin" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>The App Plugin</h3>
+<p>The app backend plugin that serves the frontend from the backend can trivially
+be used in its new form.</p>
+<pre><code class="hljs css language-diff"> // packages/backend/src/index.ts
+<span class="hljs-addition">+import { appPlugin } from '@backstage/plugin-app-backend';</span>
+
+ const backend = createBackend();
+<span class="hljs-addition">+backend.add(appPlugin({ appPackageName: 'app' }));</span>
+</code></pre>
+<p>This is an example of how options can be passed into some backend plugins. The
+app plugin specifically needs to know the name of the package that holds the
+frontend code. This is the <code>&quot;name&quot;</code> field in that package's <code>package.json</code>,
+typically found in your <code>packages/app</code> folder. By default it's just plain &quot;app&quot;.</p>
+<p>You should be able to delete the <code>plugins/app.ts</code> file at this point.</p>
+<h3><a class="anchor" aria-hidden="true" id="the-catalog-plugin"></a><a href="#the-catalog-plugin" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>The Catalog Plugin</h3>
+<p>A basic installation of the catalog plugin looks as follows.</p>
+<pre><code class="hljs css language-diff"> // packages/backend/src/index.ts
+<span class="hljs-addition">+import { catalogPlugin } from '@backstage/plugin-catalog-backend';</span>
+<span class="hljs-addition">+import { catalogModuleTemplateKind } from '@backstage/plugin-scaffolder-backend';</span>
+
+ const backend = createBackend();
+<span class="hljs-addition">+backend.add(catalogPlugin());</span>
+<span class="hljs-addition">+backend.add(catalogModuleTemplateKind());</span>
+</code></pre>
+<p>Note that this also installs a module from the scaffolder, namely the one which
+enables the use of the <code>Template</code> kind. In the unlikely event that you do not
+use templates at all, you can remove those lines.</p>
+<p>If you have other customizations made to <code>plugins/catalog.ts</code>, such as adding
+custom processors or entity providers, read on. Otherwise, you should be able to
+just delete that file at this point.</p>
+<p>You will use the <a href="/docs/backend-system/architecture/extension-points">extension points</a>
+mechanism to extend or tweak the functionality of the plugin. To do that,
+you'll make your own bespoke <a href="/docs/backend-system/architecture/modules">module</a> which
+depends on the appropriate extension point and interacts with it.</p>
+<pre><code class="hljs css language-diff"> // packages/backend/src/index.ts
+<span class="hljs-addition">+import { catalogProcessingExtensionPoint } from '@backstage/plugin-catalog-node';</span>
+<span class="hljs-addition">+import { createBackendModule } from '@backstage/backend-plugin-api';</span>
+
+<span class="hljs-addition">+const catalogModuleCustomExtensions = createBackendModule({</span>
+<span class="hljs-addition">+  pluginId: 'catalog',  // name of the plugin that the module is targeting</span>
+<span class="hljs-addition">+  moduleId: 'customExtensions',</span>
+<span class="hljs-addition">+  register(env) {</span>
+<span class="hljs-addition">+    env.registerInit({</span>
+<span class="hljs-addition">+      deps: {</span>
+<span class="hljs-addition">+        catalog: catalogProcessingExtensionPoint,</span>
+<span class="hljs-addition">+        // ... and other dependencies as needed</span>
+<span class="hljs-addition">+      },</span>
+<span class="hljs-addition">+      init({ catalog /* ..., other dependencies */ }) {</span>
+<span class="hljs-addition">+        // Here you have the opportunity to interact with the extension</span>
+<span class="hljs-addition">+        // point before the plugin itself gets instantiated</span>
+<span class="hljs-addition">+        catalog.addEntityProvider(new MyEntityProvider()); // just an example</span>
+<span class="hljs-addition">+        catalog.addProcessor(new MyProcessor());           // just an example</span>
+<span class="hljs-addition">+      },</span>
+<span class="hljs-addition">+    });</span>
+<span class="hljs-addition">+  },</span>
+<span class="hljs-addition">+});</span>
+
+ const backend = createBackend();
+ backend.add(catalogPlugin());
+ backend.add(catalogModuleTemplateKind());
+<span class="hljs-addition">+backend.add(catalogModuleCustomExtensions());</span>
+</code></pre>
+<p>This also requires that you have a dependency on the corresponding node package,
+if you didn't already have one.</p>
+<pre><code class="hljs css language-bash"><span class="hljs-comment"># from the repository root</span>
+yarn add --cwd packages/backend @backstage/plugin-catalog-node
+</code></pre>
+<p>Here we've placed the module directly in the backend index file just to get
+going easily, but feel free to move it out to where it fits best. As you migrate
+your entire plugin flora to the new backend system, you will probably make more
+and more of these modules as &quot;first class&quot; things, living right next to the
+implementations that they represent, and being exported from there.</p>
+<h3><a class="anchor" aria-hidden="true" id="the-events-plugin"></a><a href="#the-events-plugin" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>The Events Plugin</h3>
+<p>A basic installation of the events plugin looks as follows.</p>
+<pre><code class="hljs css language-diff"> // packages/backend/src/index.ts
+<span class="hljs-addition">+import { eventsPlugin } from '@backstage/plugin-events-backend';</span>
+
+ const backend = createBackend();
+<span class="hljs-addition">+backend.add(eventsPlugin());</span>
+</code></pre>
+<p>If you have other customizations made to <code>plugins/events.ts</code>, such as adding
+custom subscribers, read on. Otherwise, you should be able to just delete that
+file at this point.</p>
+<p>You will use the <a href="/docs/backend-system/architecture/extension-points">extension points</a>
+mechanism to extend or tweak the functionality of the plugin. To do that,
+you'll make your own bespoke <a href="/docs/backend-system/architecture/modules">module</a> which
+depends on the appropriate extension point and interacts with it.</p>
+<pre><code class="hljs css language-diff"> // packages/backend/src/index.ts
+<span class="hljs-addition">+import { eventsExtensionPoint } from '@backstage/plugin-events-node';</span>
+<span class="hljs-addition">+import { createBackendModule } from '@backstage/backend-plugin-api';</span>
+
+<span class="hljs-addition">+const eventsModuleCustomExtensions = createBackendModule({</span>
+<span class="hljs-addition">+  pluginId: 'events',  // name of the plugin that the module is targeting</span>
+<span class="hljs-addition">+  moduleId: 'customExtensions',</span>
+<span class="hljs-addition">+  register(env) {</span>
+<span class="hljs-addition">+    env.registerInit({</span>
+<span class="hljs-addition">+      deps: {</span>
+<span class="hljs-addition">+        events: eventsExtensionPoint,</span>
+<span class="hljs-addition">+        // ... and other dependencies as needed</span>
+<span class="hljs-addition">+      },</span>
+<span class="hljs-addition">+      init({ events /* ..., other dependencies */ }) {</span>
+<span class="hljs-addition">+        // Here you have the opportunity to interact with the extension</span>
+<span class="hljs-addition">+        // point before the plugin itself gets instantiated</span>
+<span class="hljs-addition">+        events.addSubscribers(new MySubscriber()); // just an example</span>
+<span class="hljs-addition">+      },</span>
+<span class="hljs-addition">+    });</span>
+<span class="hljs-addition">+  },</span>
+<span class="hljs-addition">+});</span>
+
+ const backend = createBackend();
+ backend.add(eventsPlugin());
+<span class="hljs-addition">+backend.add(eventsModuleCustomExtensions());</span>
+</code></pre>
+<p>This also requires that you have a dependency on the corresponding node package,
+if you didn't already have one.</p>
+<pre><code class="hljs css language-bash"><span class="hljs-comment"># from the repository root</span>
+yarn add --cwd packages/backend @backstage/plugin-events-node
+</code></pre>
+<p>Here we've placed the module directly in the backend index file just to get
+going easily, but feel free to move it out to where it fits best. As you migrate
+your entire plugin flora to the new backend system, you will probably make more
+and more of these modules as &quot;first class&quot; things, living right next to the
+implementations that they represent, and being exported from there.</p>
+<h3><a class="anchor" aria-hidden="true" id="the-scaffolder-plugin"></a><a href="#the-scaffolder-plugin" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>The Scaffolder Plugin</h3>
+<p>A basic installation of the scaffolder plugin looks as follows.</p>
+<pre><code class="hljs css language-diff"> // packages/backend/src/index.ts
+<span class="hljs-addition">+import { scaffolderPlugin } from '@backstage/plugin-scaffolder-backend';</span>
+
+ const backend = createBackend();
+<span class="hljs-addition">+backend.add(scaffolderPlugin());</span>
+</code></pre>
+<p>If you have other customizations made to <code>plugins/scaffolder.ts</code>, such as adding
+custom actions, read on. Otherwise, you should be able to just delete that file
+at this point.</p>
+<p>You will use the <a href="/docs/backend-system/architecture/extension-points">extension points</a>
+mechanism to extend or tweak the functionality of the plugin. To do that,
+you'll make your own bespoke <a href="/docs/backend-system/architecture/modules">module</a> which
+depends on the appropriate extension point and interacts with it.</p>
+<pre><code class="hljs css language-diff"> // packages/backend/src/index.ts
+<span class="hljs-addition">+import { scaffolderActionsExtensionPoint } from '@backstage/plugin-scaffolder-node';</span>
+<span class="hljs-addition">+import { createBackendModule } from '@backstage/backend-plugin-api';</span>
+
+<span class="hljs-addition">+const scaffolderModuleCustomExtensions = createBackendModule({</span>
+<span class="hljs-addition">+  pluginId: 'scaffolder',  // name of the plugin that the module is targeting</span>
+<span class="hljs-addition">+  moduleId: 'customExtensions',</span>
+<span class="hljs-addition">+  register(env) {</span>
+<span class="hljs-addition">+    env.registerInit({</span>
+<span class="hljs-addition">+      deps: {</span>
+<span class="hljs-addition">+        scaffolder: scaffolderActionsExtensionPoint,</span>
+<span class="hljs-addition">+        // ... and other dependencies as needed</span>
+<span class="hljs-addition">+      },</span>
+<span class="hljs-addition">+      init({ scaffolder /* ..., other dependencies */ }) {</span>
+<span class="hljs-addition">+        // Here you have the opportunity to interact with the extension</span>
+<span class="hljs-addition">+        // point before the plugin itself gets instantiated</span>
+<span class="hljs-addition">+        scaffolder.addActions(new MyAction()); // just an example</span>
+<span class="hljs-addition">+      },</span>
+<span class="hljs-addition">+    });</span>
+<span class="hljs-addition">+  },</span>
+<span class="hljs-addition">+});</span>
+
+ const backend = createBackend();
+ backend.add(scaffolderPlugin());
+<span class="hljs-addition">+backend.add(scaffolderModuleCustomExtensions());</span>
+</code></pre>
+<p>This also requires that you have a dependency on the corresponding node package,
+if you didn't already have one.</p>
+<pre><code class="hljs css language-bash"><span class="hljs-comment"># from the repository root</span>
+yarn add --cwd packages/backend @backstage/plugin-scaffolder-node
+</code></pre>
+<p>Here we've placed the module directly in the backend index file just to get
+going easily, but feel free to move it out to where it fits best. As you migrate
+your entire plugin flora to the new backend system, you will probably make more
+and more of these modules as &quot;first class&quot; things, living right next to the
+implementations that they represent, and being exported from there.</p>
+</span></div></article></div><div class="docLastUpdate"><em>Last updated on 1/30/2023</em></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#overview">Overview</a></li><li><a href="#overall-structure">Overall Structure</a></li><li><a href="#migrating-the-index-file">Migrating the Index File</a></li><li><a href="#handling-custom-environments">Handling Custom Environments</a></li><li><a href="#cleaning-up-the-plugins-folder">Cleaning Up the Plugins Folder</a><ul class="toc-headings"><li><a href="#the-app-plugin">The App Plugin</a></li><li><a href="#the-catalog-plugin">The Catalog Plugin</a></li><li><a href="#the-events-plugin">The Events Plugin</a></li><li><a href="#the-scaffolder-plugin">The Scaffolder Plugin</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div class="footer-title"><a href="/"><h2 class="footerLogo"></h2></a></div><div><h5>Docs</h5><a href="/docs/overview/what-is-backstage">What is Backstage?</a><a href="/docs/getting-started/">Getting started</a><a href="/docs/features/software-catalog/software-catalog-overview">Software Catalog</a><a href="/docs/plugins/create-a-plugin">Create a Plugin</a><a href="/docs/dls/design">Designing for Backstage</a></div><div><h5>Community</h5><a href="https://discord.gg/MUpMjP2">Support chatroom</a><a href="https://github.com/backstage/backstage/blob/master/CONTRIBUTING.md">Contributing</a><a href="https://backstage.spotify.com">Adopting</a><a href="https://github.com/backstage/community">Community Sessions</a><a href="https://info.backstage.spotify.com/newsletter_subscribe">Subscribe to our newsletter</a><a href="https://www.cncf.io/projects/">CNCF Incubation</a></div><div><h5>More</h5><a href="https://spotify.github.io/">Open Source @ Spotify</a><a href="https://engineering.atspotify.com/">Spotify Engineering Blog</a><a href="https://developer.spotify.com/">Spotify for Developers</a><a href="https://github.com/backstage/backstage">GitHub</a><a class="github-button" href="https://github.com/backstage/backstage" data-icon="octicon-star" data-count-href="/backstage/backstage/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/SpotifyEng" class="twitter-follow-button">Follow @SpotifyEng</a></div></div></section><p style="text-align:center"><a href="https://spotify.github.io">Made with ❤️ at Spotify</a></p><p class="copyright">Copyright © 2023 Backstage Project Authors. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our Trademark Usage page: https://www.linuxfoundation.org/trademark-usage</p></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: '8d115c9875ba0f4feaee95bab55a1645',
+                indexName: 'backstage',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Backend Plugins · Backstage Software Catalog and Developer Platform</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Backend plugins"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Backend Plugins · Backstage Software Catalog and Developer Platform"/><meta property="og:type" content="website"/><meta property="og:url" content="https://backstage.io/"/><meta property="og:description" content="Backend plugins"/><meta property="og:image" content="https://backstage.io/img/sharing-opengraph.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://backstage.io/img/twitter-summary.png"/><link rel="shortcut icon" href="/img/favicon.ico"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai.min.css"/><link rel="alternate" type="application/atom+xml" href="https://backstage.io/blog/atom.xml" title="Backstage Software Catalog and Developer Platform Blog ATOM Feed"/><link rel="alternate" type="application/rss+xml" href="https://backstage.io/blog/feed.xml" title="Backstage Software Catalog and Developer Platform Blog RSS Feed"/><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-KSEVGGNCJW"></script><script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments); }
+              gtag('js', new Date());
+              gtag('config', 'G-KSEVGGNCJW');
+            </script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono:500,700&amp;display=swap"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://unpkg.com/medium-zoom@1.0.6/dist/medium-zoom.min.js"></script><script type="text/javascript" src="/js/medium-zoom.js"></script><script type="text/javascript" src="/js/dismissable-banner.js"></script><script type="text/javascript" src="/js/scroll-nav-to-view-in-docs.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Backstage Software Catalog and Developer Platform</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://github.com/backstage/backstage" target="_self">GitHub</a></li><li class=""><a href="/docs/overview/what-is-backstage" target="_self">Docs</a></li><li class=""><a href="/plugins" target="_self">Plugins</a></li><li class=""><a href="/blog" target="_self">Blog</a></li><li class=""><a href="/docs/releases/v1.10.0" target="_self">Releases</a></li><li class=""><a href="/demos" target="_self">Demos</a></li><li class=""><a href="/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/backstage/backstage/edit/master/docs/backend-system/architecture/04-plugins.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">Backend Plugins</h1></header><article><div><span><p>Plugins provide the actual base features of a Backstage backend. Each plugin operates completely independently of all other plugins and they only communicate with each other through network calls. This means that there is a strong degree of isolation between plugins, and that each plugin can be considered a separate microservice. While a default Backstage project has all plugins installed within a single backend, it is also possible to split this setup into multiple backends, with each backend housing one or more plugins.</p>
+<h2><a class="anchor" aria-hidden="true" id="defining-a-plugin"></a><a href="#defining-a-plugin" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Defining a Plugin</h2>
+<p>Plugins are created using the <code>createBackendPlugin</code> function, and should typically be exported from a plugin package. All plugins must have an ID and a <code>register</code> method, where the ID matches the plugin ID in the package name, without the <code>-backend</code> suffix. See also the <a href="/docs/backend-system/architecture/naming-patterns">dedicated section</a> about proper naming patterns.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-comment">// plugins/example-backend/src/plugin.ts</span>
+<span class="hljs-keyword">import</span> {
+  coreServices,
+  createBackendPlugin,
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/backend-plugin-api'</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> examplePlugin = createBackendPlugin({
+  id: <span class="hljs-string">'example'</span>,
+  register(env) {
+    env.registerInit({
+      deps: {
+        logger: coreServices.logger,
+      },
+      <span class="hljs-keyword">async</span> init({ logger }) {
+        logger.info(<span class="hljs-string">'Hello from example plugin'</span>);
+      },
+    });
+  },
+});
+</code></pre>
+<p>The <code>env</code> object passed to the <code>register</code> callback contains different methods that declare the external surface of the plugin. The <code>env.registerInit</code> method is used to register an initialization function that is run when the backend starts up. The <code>deps</code> argument is used to declare service dependencies, and the <code>init</code> callback is passed an object with the resolved dependencies. In this case, we declare a dependency on the logger service, which is one of the core services available to all Backstage backend plugins. For a full list of core services as well as documentation for each services, see the <a href="/docs/backend-system/core-services/">core services section</a>. Plugins can of course also depend on services exported by other libraries.</p>
+<p>The <code>createBackendPlugin</code> return value is exported as <code>examplePlugin</code>, which is a factory function used to create the actual plugin instance. For example, to install the plugin in your backend instance, you would do the following:</p>
+<pre><code class="hljs css language-ts">backend.add(examplePlugin());
+</code></pre>
+<p>The reason for why our plugin instance has been wrapped up in a factory function is so that you can always chose to add options to your plugin in the future, without breaking existing usage. To add options you wrap the object passed to <code>createBackendPlugin</code> in a callback that accepts the desired options. For example:</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> ExamplePluginOptions {
+  skipHello: <span class="hljs-built_in">boolean</span>;
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> examplePlugin = createBackendPlugin(
+  <span class="hljs-function">(<span class="hljs-params">options?: ExamplePluginOptions</span>) =&gt;</span> ({
+    id: <span class="hljs-string">'example'</span>,
+    register(env) {
+      env.registerInit({
+        deps: {
+          logger: coreServices.logger,
+        },
+        <span class="hljs-keyword">async</span> init({ logger }) {
+          <span class="hljs-keyword">if</span> (!options?.skipHello) {
+            logger.info(<span class="hljs-string">'Hello from example plugin'</span>);
+          }
+        },
+      });
+    },
+  }),
+);
+</code></pre>
+<p>Now your plugin accepts an optional options object, which can be used to configure each plugin instance. To supply options to the plugin, you pass them to the plugin factory method:</p>
+<pre><code class="hljs css language-ts">backend.add(examplePlugin({ skipHello: <span class="hljs-literal">true</span> }));
+</code></pre>
+<p>It is also possible to make the options required, simply remove the <code>?</code> from the parameter declaration. This will be reflected in the returned factory function, which will now require the options parameter.</p>
+<p>Options are a simple way to allow for more lightweight customization of a plugin, but they do not allow for more complex extensions that require access to services. For that, you need to create and register extension points for your plugin, which are covered in the <a href="/docs/backend-system/architecture/extension-points">next section</a>.</p>
+<h2><a class="anchor" aria-hidden="true" id="rules-of-plugins"></a><a href="#rules-of-plugins" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Rules of Plugins</h2>
+<p>The following rules apply to the production setup of Backstage plugins in the broader Backstage plugin ecosystem. Any plugin that is maintained under the <code>@backstage</code> package namespace should follow these rules, and it is recommended that all widely distributed plugins follow these rules as well.</p>
+<p>An exception to these rules are made for development or test setups, where shortcuts can be take in order to streamline development and keep things simple.</p>
+<h3><a class="anchor" aria-hidden="true" id="scalable"></a><a href="#scalable" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Scalable</h3>
+<p>Plugins must always be designed to be horizontally scalable. This means that you should not keep any state in memory, or make sure that replicating this state across multiple instances is not an issue. Plugins should either be stateless, or store their state in an external service, such as a database.</p>
+<h3><a class="anchor" aria-hidden="true" id="isolated"></a><a href="#isolated" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Isolated</h3>
+<p>Plugins must never communicate with each other directly through code, they may only communicate over the network. Plugins that wish to expose an external interface for other plugins and modules to use are recommended to do so though a <a href="/docs/local-dev/cli-build-system#package-roles">node-library</a> package. The library should export an API client service to make calls to your plugin, or similar construct.</p>
+</span></div></article></div><div class="docLastUpdate"><em>Last updated on 1/30/2023</em></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#defining-a-plugin">Defining a Plugin</a></li><li><a href="#rules-of-plugins">Rules of Plugins</a><ul class="toc-headings"><li><a href="#scalable">Scalable</a></li><li><a href="#isolated">Isolated</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div class="footer-title"><a href="/"><h2 class="footerLogo"></h2></a></div><div><h5>Docs</h5><a href="/docs/overview/what-is-backstage">What is Backstage?</a><a href="/docs/getting-started/">Getting started</a><a href="/docs/features/software-catalog/software-catalog-overview">Software Catalog</a><a href="/docs/plugins/create-a-plugin">Create a Plugin</a><a href="/docs/dls/design">Designing for Backstage</a></div><div><h5>Community</h5><a href="https://discord.gg/MUpMjP2">Support chatroom</a><a href="https://github.com/backstage/backstage/blob/master/CONTRIBUTING.md">Contributing</a><a href="https://backstage.spotify.com">Adopting</a><a href="https://github.com/backstage/community">Community Sessions</a><a href="https://info.backstage.spotify.com/newsletter_subscribe">Subscribe to our newsletter</a><a href="https://www.cncf.io/projects/">CNCF Incubation</a></div><div><h5>More</h5><a href="https://spotify.github.io/">Open Source @ Spotify</a><a href="https://engineering.atspotify.com/">Spotify Engineering Blog</a><a href="https://developer.spotify.com/">Spotify for Developers</a><a href="https://github.com/backstage/backstage">GitHub</a><a class="github-button" href="https://github.com/backstage/backstage" data-icon="octicon-star" data-count-href="/backstage/backstage/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/SpotifyEng" class="twitter-follow-button">Follow @SpotifyEng</a></div></div></section><p style="text-align:center"><a href="https://spotify.github.io">Made with ❤️ at Spotify</a></p><p class="copyright">Copyright © 2023 Backstage Project Authors. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our Trademark Usage page: https://www.linuxfoundation.org/trademark-usage</p></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: '8d115c9875ba0f4feaee95bab55a1645',
+                indexName: 'backstage',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

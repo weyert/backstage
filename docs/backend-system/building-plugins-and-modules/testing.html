@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Testing Backend Plugins and Modules · Backstage Software Catalog and Developer Platform</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Learn how to test your backend plugins and modules"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Testing Backend Plugins and Modules · Backstage Software Catalog and Developer Platform"/><meta property="og:type" content="website"/><meta property="og:url" content="https://backstage.io/"/><meta property="og:description" content="Learn how to test your backend plugins and modules"/><meta property="og:image" content="https://backstage.io/img/sharing-opengraph.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://backstage.io/img/twitter-summary.png"/><link rel="shortcut icon" href="/img/favicon.ico"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai.min.css"/><link rel="alternate" type="application/atom+xml" href="https://backstage.io/blog/atom.xml" title="Backstage Software Catalog and Developer Platform Blog ATOM Feed"/><link rel="alternate" type="application/rss+xml" href="https://backstage.io/blog/feed.xml" title="Backstage Software Catalog and Developer Platform Blog RSS Feed"/><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-KSEVGGNCJW"></script><script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments); }
+              gtag('js', new Date());
+              gtag('config', 'G-KSEVGGNCJW');
+            </script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono:500,700&amp;display=swap"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://unpkg.com/medium-zoom@1.0.6/dist/medium-zoom.min.js"></script><script type="text/javascript" src="/js/medium-zoom.js"></script><script type="text/javascript" src="/js/dismissable-banner.js"></script><script type="text/javascript" src="/js/scroll-nav-to-view-in-docs.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Backstage Software Catalog and Developer Platform</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://github.com/backstage/backstage" target="_self">GitHub</a></li><li class=""><a href="/docs/overview/what-is-backstage" target="_self">Docs</a></li><li class=""><a href="/plugins" target="_self">Plugins</a></li><li class=""><a href="/blog" target="_self">Blog</a></li><li class=""><a href="/docs/releases/v1.10.0" target="_self">Releases</a></li><li class=""><a href="/demos" target="_self">Demos</a></li><li class=""><a href="/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/backstage/backstage/edit/master/docs/backend-system/building-plugins-and-modules/02-testing.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">Testing Backend Plugins and Modules</h1></header><article><div><span><p>Utilities for testing backend plugins and modules are available in
+<code>@backstage/backend-test-utils</code>. This section describes those facilities.</p>
+<h2><a class="anchor" aria-hidden="true" id="testing-backend-plugins-and-modules"></a><a href="#testing-backend-plugins-and-modules" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing Backend Plugins and Modules</h2>
+<p>To facilitate testing of backend plugins and modules, the
+<code>@backstage/backend-test-utils</code> package provides a <code>startTestBackend</code> function
+which starts up an entire backend harness, complete with a number of mock
+services. You can then provide overrides for services whose behavior you need to
+adjust for the test run. The function also accepts a number of <em>features</em> (a
+collective term for backend <a href="/docs/backend-system/architecture/plugins">plugins</a> and
+<a href="/docs/backend-system/architecture/modules">modules</a>), that are the subjects of the test.</p>
+<p>The function returns an HTTP server instance which can be used together with
+e.g. <code>supertest</code> to easily test the actual REST service surfaces of plugins who
+register routes with <a href="/docs/backend-system/core-services/">the HTTP router service
+API</a>.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">import</span> { mockServices, startTestBackend } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/backend-test-utils'</span>;
+<span class="hljs-keyword">import</span> request <span class="hljs-keyword">from</span> <span class="hljs-string">'supertest'</span>;
+<span class="hljs-keyword">import</span> { myPlugin } <span class="hljs-keyword">from</span> <span class="hljs-string">'./plugin.ts'</span>;
+
+describe(<span class="hljs-string">'myPlugin'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+  it(<span class="hljs-string">'can serve values from config'</span>, <span class="hljs-keyword">async</span> () =&gt; {
+    <span class="hljs-keyword">const</span> fakeConfig = { myPlugin: { value: <span class="hljs-number">7</span> } };
+
+    <span class="hljs-keyword">const</span> { server } = <span class="hljs-keyword">await</span> startTestBackend({
+      features: [myPlugin()],
+      services: [mockServices.config.factory({ data: fakeConfig })],
+    });
+
+    <span class="hljs-keyword">const</span> response = <span class="hljs-keyword">await</span> request(server).get(<span class="hljs-string">'/api/example/get-value'</span>);
+    expect(response.status).toBe(<span class="hljs-number">200</span>);
+    expect(response.body).toEqual({ value: <span class="hljs-number">7</span> });
+  });
+});
+</code></pre>
+<p>This example shows how to access the mock service factories and
+pass options to them, which will override the default mock services.</p>
+<p>The returned server also has a <code>port()</code> method which returns the dynamically
+bound listening port. You can use this to perform lower level network
+interactions with the running test service.</p>
+<h2><a class="anchor" aria-hidden="true" id="testing-remote-service-interactions"></a><a href="#testing-remote-service-interactions" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing Remote Service Interactions</h2>
+<p>If your backend plugin or service interacts with external services using HTTP
+calls, we recommend leveraging the <code>msw</code> package to intercept actual outgoing
+requests and return mock responses. This lets you stub out remote services
+rather than the local clients, leading to more thorough and robust tests. You
+can read more about how it works <a href="https://mswjs.io/">in their documentation</a>.</p>
+<p>The <code>@backstage/backend-test-utils</code> package exports a <code>setupRequestMockHandlers</code>
+function which ensures that the correct <code>jest</code> lifecycle hooks are invoked to
+set up and tear down your <code>msw</code> instance, and enables the option that completely
+rejects requests that don't match one of your mock rules. This ensures that your
+tests cannot accidentally leak traffic into production from tests.</p>
+<p>Example:</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">import</span> { setupRequestMockHandlers } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/backend-test-utils'</span>;
+<span class="hljs-keyword">import</span> { rest } <span class="hljs-keyword">from</span> <span class="hljs-string">'msw'</span>;
+<span class="hljs-keyword">import</span> { setupServer } <span class="hljs-keyword">from</span> <span class="hljs-string">'msw/node'</span>;
+
+describe(<span class="hljs-string">'read from remote'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+  <span class="hljs-keyword">const</span> worker = setupServer();
+  setupRequestMockHandlers(worker);
+
+  it(<span class="hljs-string">'should auth and read successfully'</span>, <span class="hljs-keyword">async</span> () =&gt; {
+    expect.assertions(<span class="hljs-number">1</span>);
+
+    worker.use(
+      rest.get(<span class="hljs-string">'https://remote-server.com/api/v3/foo'</span>, <span class="hljs-function">(<span class="hljs-params">req, res, ctx</span>) =&gt;</span> {
+        expect(req.headers.get(<span class="hljs-string">'authorization'</span>)).toBe(<span class="hljs-string">'Bearer fake'</span>);
+        <span class="hljs-keyword">return</span> res(
+          ctx.status(<span class="hljs-number">200</span>),
+          ctx.set(<span class="hljs-string">'Content-Type'</span>, <span class="hljs-string">'application/json'</span>),
+          ctx.body(<span class="hljs-built_in">JSON</span>.stringify({ value: <span class="hljs-number">7</span> })),
+        );
+      }),
+    );
+
+    <span class="hljs-comment">// exercise your plugin or service as usual, with real clients</span>
+  });
+});
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="testing-database-interactions"></a><a href="#testing-database-interactions" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Testing Database Interactions</h2>
+<p>The <code>@backstage/backend-test-utils</code> package includes facilities for testing your
+plugins' interactions with databases, including spinning up <code>testcontainers</code>
+powered Docker images with real database engines to connect to.</p>
+<p>The base setup for such a test could look as follows:</p>
+<pre><code class="hljs css language-ts"><span class="hljs-comment">// MyDatabaseClass.test.ts</span>
+<span class="hljs-keyword">import</span> { TestDatabaseId, TestDatabases } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/backend-test-utils'</span>;
+<span class="hljs-keyword">import</span> { MyDatabaseClass, <span class="hljs-keyword">type</span> FooTableRow } <span class="hljs-keyword">from</span> <span class="hljs-string">'./MyDatabaseClass'</span>;
+
+describe(<span class="hljs-string">'MyDatabaseClass'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+  <span class="hljs-comment">// Change this to the set of constants that you actually actively intend to</span>
+  <span class="hljs-comment">// support. This create call must be made inside a describe block. Make sure</span>
+  <span class="hljs-comment">// to create only one TestDatabases instance per file, since spinning up</span>
+  <span class="hljs-comment">// "physical" databases to test against is much costlier than creating the</span>
+  <span class="hljs-comment">// "logical" databases within them that the individual tests use.</span>
+  <span class="hljs-keyword">const</span> databases = TestDatabases.create({
+    ids: [<span class="hljs-string">'POSTGRES_13'</span>, <span class="hljs-string">'POSTGRES_9'</span>, <span class="hljs-string">'SQLITE_3'</span>],
+  });
+
+  <span class="hljs-comment">// Just an example of how to conveniently bundle up the setup code</span>
+  <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createSubject</span>(<span class="hljs-params">databaseId: TestDatabaseId</span>) </span>{
+    <span class="hljs-keyword">const</span> knex = <span class="hljs-keyword">await</span> databases.init(databaseId);
+    <span class="hljs-keyword">const</span> subject = <span class="hljs-keyword">new</span> MyDatabaseClass({ database: knex });
+    <span class="hljs-keyword">await</span> subject.runMigrations();
+    <span class="hljs-keyword">return</span> { knex, subject };
+  }
+
+  describe(<span class="hljs-string">'foo'</span>, <span class="hljs-function"><span class="hljs-params">()</span> =&gt;</span> {
+    <span class="hljs-comment">// Easily run the exact same test onto all supported databases</span>
+    it.each(databases.eachSupportedId())(
+      <span class="hljs-string">'should run foo on %p'</span>,
+      <span class="hljs-keyword">async</span> databaseId =&gt; {
+        <span class="hljs-keyword">const</span> { knex, subject } = <span class="hljs-keyword">await</span> createSubject(databaseId);
+        <span class="hljs-comment">// raw knex is available for underlying manipulation</span>
+        <span class="hljs-keyword">await</span> knex&lt;FooTableRow&gt;(<span class="hljs-string">'foo'</span>).insert({ value: <span class="hljs-number">2</span> });
+        <span class="hljs-comment">// drive your system under test as usual</span>
+        <span class="hljs-keyword">await</span> expect(subject.foos()).resolves.toEqual([{ value: <span class="hljs-number">2</span> }]);
+      });
+  });
+</code></pre>
+<p>If you want to pass the test database instance into backend plugins or services,
+you can supply it in the form of a mock instance of <code>coreServices.database</code> to
+your test database.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">const</span> { knex, subject } = <span class="hljs-keyword">await</span> createSubject(databaseId);
+<span class="hljs-keyword">const</span> { server } = <span class="hljs-keyword">await</span> startTestBackend({
+  features: [myPlugin()],
+  services: [[coreServices.database, { getClient: <span class="hljs-keyword">async</span> () =&gt; knex }]],
+});
+</code></pre>
+<p>When running locally, the tests only run against SQLite for the sake of speed.
+When the <code>CI</code> environment variable is set, all given database engines are used.</p>
+<p>If you do not want or are unable to use docker based database engines, e.g. if
+your CI environment is able to supply databases natively, the <code>TestDatabases</code>
+support custom connection strings through the use of environment variables that
+it'll take into account when present.</p>
+<ul>
+<li><code>BACKSTAGE_TEST_DATABASE_POSTGRES13_CONNECTION_STRING</code></li>
+<li><code>BACKSTAGE_TEST_DATABASE_POSTGRES9_CONNECTION_STRING</code></li>
+<li><code>BACKSTAGE_TEST_DATABASE_MYSQL8_CONNECTION_STRING</code></li>
+</ul>
+</span></div></article></div><div class="docLastUpdate"><em>Last updated on 1/30/2023</em></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#testing-backend-plugins-and-modules">Testing Backend Plugins and Modules</a></li><li><a href="#testing-remote-service-interactions">Testing Remote Service Interactions</a></li><li><a href="#testing-database-interactions">Testing Database Interactions</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div class="footer-title"><a href="/"><h2 class="footerLogo"></h2></a></div><div><h5>Docs</h5><a href="/docs/overview/what-is-backstage">What is Backstage?</a><a href="/docs/getting-started/">Getting started</a><a href="/docs/features/software-catalog/software-catalog-overview">Software Catalog</a><a href="/docs/plugins/create-a-plugin">Create a Plugin</a><a href="/docs/dls/design">Designing for Backstage</a></div><div><h5>Community</h5><a href="https://discord.gg/MUpMjP2">Support chatroom</a><a href="https://github.com/backstage/backstage/blob/master/CONTRIBUTING.md">Contributing</a><a href="https://backstage.spotify.com">Adopting</a><a href="https://github.com/backstage/community">Community Sessions</a><a href="https://info.backstage.spotify.com/newsletter_subscribe">Subscribe to our newsletter</a><a href="https://www.cncf.io/projects/">CNCF Incubation</a></div><div><h5>More</h5><a href="https://spotify.github.io/">Open Source @ Spotify</a><a href="https://engineering.atspotify.com/">Spotify Engineering Blog</a><a href="https://developer.spotify.com/">Spotify for Developers</a><a href="https://github.com/backstage/backstage">GitHub</a><a class="github-button" href="https://github.com/backstage/backstage" data-icon="octicon-star" data-count-href="/backstage/backstage/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/SpotifyEng" class="twitter-follow-button">Follow @SpotifyEng</a></div></div></section><p style="text-align:center"><a href="https://spotify.github.io">Made with ❤️ at Spotify</a></p><p class="copyright">Copyright © 2023 Backstage Project Authors. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our Trademark Usage page: https://www.linuxfoundation.org/trademark-usage</p></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: '8d115c9875ba0f4feaee95bab55a1645',
+                indexName: 'backstage',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

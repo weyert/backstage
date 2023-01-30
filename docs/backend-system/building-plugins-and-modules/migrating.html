@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Migrating your Backend Plugin to the New Backend System · Backstage Software Catalog and Developer Platform</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="How to migrate existing backend plugins to the new backend system"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Migrating your Backend Plugin to the New Backend System · Backstage Software Catalog and Developer Platform"/><meta property="og:type" content="website"/><meta property="og:url" content="https://backstage.io/"/><meta property="og:description" content="How to migrate existing backend plugins to the new backend system"/><meta property="og:image" content="https://backstage.io/img/sharing-opengraph.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://backstage.io/img/twitter-summary.png"/><link rel="shortcut icon" href="/img/favicon.ico"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai.min.css"/><link rel="alternate" type="application/atom+xml" href="https://backstage.io/blog/atom.xml" title="Backstage Software Catalog and Developer Platform Blog ATOM Feed"/><link rel="alternate" type="application/rss+xml" href="https://backstage.io/blog/feed.xml" title="Backstage Software Catalog and Developer Platform Blog RSS Feed"/><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-KSEVGGNCJW"></script><script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments); }
+              gtag('js', new Date());
+              gtag('config', 'G-KSEVGGNCJW');
+            </script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono:500,700&amp;display=swap"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://unpkg.com/medium-zoom@1.0.6/dist/medium-zoom.min.js"></script><script type="text/javascript" src="/js/medium-zoom.js"></script><script type="text/javascript" src="/js/dismissable-banner.js"></script><script type="text/javascript" src="/js/scroll-nav-to-view-in-docs.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Backstage Software Catalog and Developer Platform</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://github.com/backstage/backstage" target="_self">GitHub</a></li><li class=""><a href="/docs/overview/what-is-backstage" target="_self">Docs</a></li><li class=""><a href="/plugins" target="_self">Plugins</a></li><li class=""><a href="/blog" target="_self">Blog</a></li><li class=""><a href="/docs/releases/v1.10.0" target="_self">Releases</a></li><li class=""><a href="/demos" target="_self">Demos</a></li><li class=""><a href="/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/backstage/backstage/edit/master/docs/backend-system/building-plugins-and-modules/08-migrating.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">Migrating your Backend Plugin to the New Backend System</h1></header><article><div><span><p>Migrating an existing backend plugin to the new backend system is fairly straightforward. The process is similar across the majority of plugins which just return a <code>Router</code> that is then wired up in the <code>index.ts</code> file of your backend. The primary thing that we need to do is to make sure that the dependencies that are required by the plugin are available, and then registering the router with the HTTP router service.</p>
+<p>Let's look at an example of migrating the Kubernetes backend plugin. In the existing (old) system, the kubernetes backend is structured like this:</p>
+<pre><code class="hljs css language-ts"><span class="hljs-comment">// @backstage/plugin-kubernetes-backend/src/service/router.ts</span>
+
+<span class="hljs-keyword">import</span> { KubernetesBuilder } <span class="hljs-keyword">from</span> <span class="hljs-string">'./KubernetesBuilder'</span>;
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> RouterOptions {
+  logger: Logger;
+  config: Config;
+  catalogApi: CatalogApi;
+  clusterSupplier?: KubernetesClustersSupplier;
+  discovery: PluginEndpointDiscovery;
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createRouter</span>(<span class="hljs-params">
+  options: RouterOptions,
+</span>): <span class="hljs-title">Promise</span>&lt;<span class="hljs-title">express</span>.<span class="hljs-title">Router</span>&gt; </span>{
+  <span class="hljs-keyword">const</span> { router } = <span class="hljs-keyword">await</span> KubernetesBuilder.createBuilder(options)
+    .setClusterSupplier(options.clusterSupplier)
+    .build();
+  <span class="hljs-keyword">return</span> router;
+}
+</code></pre>
+<p>We can re-use the <code>router</code> created by the <code>KubernetesBuilder</code> in the new backend system. We only need to make sure that the dependencies specified in <code>RouterOptions</code> above are available. All of them are part of the <code>coreServices</code> which makes migration easy.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">import</span> {
+  coreServices,
+  createBackendPlugin,
+} <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/backend-plugin-api'</span>;
+<span class="hljs-keyword">import</span> { catalogServiceRef } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/plugin-catalog-node'</span>;
+<span class="hljs-keyword">import</span> { Router } <span class="hljs-keyword">from</span> <span class="hljs-string">'express'</span>;
+<span class="hljs-keyword">import</span> { KubernetesBuilder } <span class="hljs-keyword">from</span> <span class="hljs-string">'./KubernetesBuilder'</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> kubernetesPlugin = createBackendPlugin({
+  id: <span class="hljs-string">'kubernetes'</span>,
+  register(env) {
+    env.registerInit({
+      deps: {
+        logger: coreServices.logger,
+        config: coreServices.config,
+        catalogApi: catalogServiceRef,
+        discovery: coreServices.discovery,
+        <span class="hljs-comment">// The http router service is used to register the router created by the KubernetesBuilder.</span>
+        http: coreServices.httpRouter,
+      },
+      <span class="hljs-keyword">async</span> init({ config, logger, catalogApi, discovery, http }) {
+        <span class="hljs-keyword">const</span> { router } = <span class="hljs-keyword">await</span> KubernetesBuilder.createBuilder({
+          config,
+          logger,
+          catalogApi,
+          discovery,
+        }).build();
+
+        <span class="hljs-comment">// We register the router with the http service.</span>
+        http.use(router);
+      },
+    });
+  },
+});
+</code></pre>
+<p>Done! Users of this plugin are now able to import the <code>kubernetesPlugin</code> and register it in their backend using</p>
+<pre><code class="hljs css language-ts"><span class="hljs-comment">// packages/backend/src/index.ts</span>
+<span class="hljs-keyword">import</span> { kubernetesPlugin } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/plugin-kubernetes-backend'</span>;
+backend.add(kubernetesPlugin);
+</code></pre>
+<p>There's one thing missing that those sharp eyed readers might have noticed: the <code>clusterSupplier</code> option is missing from the original plugin. Let's add it and discuss the alternatives.</p>
+<p>One alternative is to pass the <code>ClusterSupplier</code> in as options to the plugin, which is quick and easy but not very flexible, and also hard to evolve without introducing breaking changes as it changes the public API for the plugin. Having complex types passed in directly to the plugin also clutters the backend setup code and makes it harder to read.</p>
+<p>Options are primarily used for simple configuration values that are not complex types. In this case we want to allow users to register their own <code>ClusterSupplier</code> implementations to the plugin. This is where the new backend system's <a href="/docs/backend-system/architecture/extension-points">extension points</a> come in handy, but let's look at doing this with options first.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-comment">/* omitted imports but they remain the same as above */</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> KubernetesOptions {
+  clusterSupplier?: KubernetesClustersSupplier;
+}
+
+<span class="hljs-keyword">const</span> kubernetesPlugin = createBackendPlugin(<span class="hljs-function">(<span class="hljs-params">options: KubernetesOptions</span>) =&gt;</span> ({
+  id: <span class="hljs-string">'kubernetes'</span>,
+  register(env) {
+    env.registerInit({
+      deps: {
+        <span class="hljs-comment">/* omitted dependencies but they remain the same as above */</span>
+      },
+      <span class="hljs-keyword">async</span> init({ config, logger, catalogApi, discovery, http }) {
+        <span class="hljs-keyword">const</span> { router } = <span class="hljs-keyword">await</span> KubernetesBuilder.createBuilder({
+          config,
+          logger,
+          catalogApi,
+          discovery,
+        })
+          .setClusterSupplier(options.clusterSupplier)
+          .build();
+        http.use(router);
+      },
+    });
+  },
+}));
+</code></pre>
+<p>The above would allow users to specify their own <code>ClusterSupplier</code> implementation to the plugin like this:</p>
+<pre><code class="hljs css language-ts">backend.add(
+  kubernetesPlugin({ clusterSupplier: <span class="hljs-keyword">new</span> MyCustomClusterSupplier() }),
+);
+</code></pre>
+<p>Just to echo what was said above, this is not a very flexible solution and will for example be problematic to keep backwards compatible if we start evolving the options to for example accept multiple suppliers or tweak the <code>ClusterSupplier</code> interface.</p>
+<p>The new <a href="/docs/backend-system/architecture/extension-points">extension points</a> API allows <a href="/docs/backend-system/architecture/modules">modules</a> to add functionality into the backend plugin itself, in this case an additional <code>ClusterSupplier</code>.</p>
+<p>The kubernetes backend plugin only supports one <code>ClusterSupplier</code> at this time but let's look at how we could add support for multiple suppliers using extension points. This allows users to install several modules that add their own <code>ClusterSupplier</code> implementations to the plugin like this:</p>
+<pre><code class="hljs css language-ts">backend.add(kubernetesPlugin());
+backend.add(kubernetesGoogleContainerEngineClusterSupplier());
+backend.add(kubernetesElasticContainerEngine());
+</code></pre>
+<p>Now let's look at how to implement this with extension points. First we need to define the extension point itself. As the extension point will be used by other modules, it's common practice to export these from a shared package so that they can be imported by other modules and plugins.</p>
+<p>We'll go ahead and create a <code>@backstage/plugin-kubernetes-node</code> package for this and from there we'll export the extension point.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">import</span> { createExtensionPoint } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/backend-plugin-api'</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> KubernetesClusterSupplierExtensionPoint {
+  addClusterSupplier(supplier: KubernetesClustersSupplier): <span class="hljs-built_in">void</span>;
+}
+
+<span class="hljs-comment">/**
+ * An extension point that allows other plugins to add cluster suppliers.
+ * @public
+ */</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> kubernetesClustersSupplierExtensionPoint =
+  createExtensionPoint&lt;KubernetesClusterSupplierExtensionPoint&gt;({
+    id: <span class="hljs-string">'kubernetes.cluster-supplier'</span>,
+  });
+</code></pre>
+<p>Now we can use this extension point in the kubernetes backend plugin to register the extension point for modules to use.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">import</span> { kubernetesClustersSupplierExtensionPoint, KubernetesClusterSupplierExtensionPoint } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/plugin-kubernetes-node'</span>;
+
+<span class="hljs-comment">// Our internal implementation of the extension point, should not be exported.</span>
+<span class="hljs-keyword">class</span> ClusterSupplier <span class="hljs-keyword">implements</span> KubernetesClusterSupplierExtensionPoint {
+  <span class="hljs-keyword">private</span> clusterSuppliers: KubernetesClustersSupplier | <span class="hljs-literal">undefined</span>;
+
+  <span class="hljs-comment">// This method is private and only used internally to retrieve the registered supplier.</span>
+  getClusterSupplier() {
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.clusterSuppliers;
+  }
+
+  addClusterSupplier(supplier: KubernetesClustersSupplier) {
+    <span class="hljs-comment">// We can remove this check once the plugin support multiple suppliers.</span>
+    <span class="hljs-keyword">if</span>(<span class="hljs-keyword">this</span>.clusterSuppliers) {
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Multiple Kubernetes cluster suppliers is not supported at this time'</span>);
+    }
+    <span class="hljs-keyword">this</span>.clusterSuppliers = supplier;
+  }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> kubernetesPlugin = createBackendPlugin({
+  id: <span class="hljs-string">'kubernetes'</span>,
+  register(env) {
+    <span class="hljs-keyword">const</span> extensionPoint = <span class="hljs-keyword">new</span> ClusterSupplier();
+    <span class="hljs-comment">// We register the extension point with the backend, which allows modules to</span>
+    <span class="hljs-comment">// register their own ClusterSupplier.</span>
+    env.registerExtensionPoint(
+      kubernetesClustersSupplierExtensionPoint,
+      extensionPoint,
+    );
+
+    env.registerInit({
+      deps: {
+        ... omitted ...
+      },
+      <span class="hljs-keyword">async</span> init({ config, logger, catalogApi, discovery, http }) {
+        <span class="hljs-keyword">const</span> { router } = <span class="hljs-keyword">await</span> KubernetesBuilder.createBuilder({
+          config,
+          logger,
+          catalogApi,
+          discovery,
+        })
+          <span class="hljs-comment">// We pass in the registered supplier from the extension point.</span>
+          .setClusterSupplier(extensionPoint.getClusterSupplier())
+          .build();
+        http.use(router);
+      },
+    });
+  },
+});
+</code></pre>
+<p>And that's it! Modules can now be built that add clusters into to the kubernetes backend plugin, here's an example of a module that adds a <code>GoogleContainerEngineSupplier</code> to the kubernetes backend.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">import</span> { kubernetesClustersSupplierExtensionPoint } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/plugin-kubernetes-node'</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> kubernetesGoogleContainerEngineClusterSupplier =
+  createBackendModule({
+    pluginId: <span class="hljs-string">'kubernetes'</span>,
+    moduleId: <span class="hljs-string">'gke.supplier'</span>,
+    register(env) {
+      env.registerInit({
+        deps: {
+          supplier: kubernetesClustersSupplierExtensionPoint,
+        },
+        <span class="hljs-keyword">async</span> init({ supplier }) {
+          supplier.addClusterSupplier(<span class="hljs-keyword">new</span> GoogleContainerEngineSupplier());
+        },
+      });
+    },
+  });
+</code></pre>
+</span></div></article></div><div class="docLastUpdate"><em>Last updated on 1/30/2023</em></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div class="footer-title"><a href="/"><h2 class="footerLogo"></h2></a></div><div><h5>Docs</h5><a href="/docs/overview/what-is-backstage">What is Backstage?</a><a href="/docs/getting-started/">Getting started</a><a href="/docs/features/software-catalog/software-catalog-overview">Software Catalog</a><a href="/docs/plugins/create-a-plugin">Create a Plugin</a><a href="/docs/dls/design">Designing for Backstage</a></div><div><h5>Community</h5><a href="https://discord.gg/MUpMjP2">Support chatroom</a><a href="https://github.com/backstage/backstage/blob/master/CONTRIBUTING.md">Contributing</a><a href="https://backstage.spotify.com">Adopting</a><a href="https://github.com/backstage/community">Community Sessions</a><a href="https://info.backstage.spotify.com/newsletter_subscribe">Subscribe to our newsletter</a><a href="https://www.cncf.io/projects/">CNCF Incubation</a></div><div><h5>More</h5><a href="https://spotify.github.io/">Open Source @ Spotify</a><a href="https://engineering.atspotify.com/">Spotify Engineering Blog</a><a href="https://developer.spotify.com/">Spotify for Developers</a><a href="https://github.com/backstage/backstage">GitHub</a><a class="github-button" href="https://github.com/backstage/backstage" data-icon="octicon-star" data-count-href="/backstage/backstage/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/SpotifyEng" class="twitter-follow-button">Follow @SpotifyEng</a></div></div></section><p style="text-align:center"><a href="https://spotify.github.io">Made with ❤️ at Spotify</a></p><p class="copyright">Copyright © 2023 Backstage Project Authors. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our Trademark Usage page: https://www.linuxfoundation.org/trademark-usage</p></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: '8d115c9875ba0f4feaee95bab55a1645',
+                indexName: 'backstage',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Backend Plugin Extension Points · Backstage Software Catalog and Developer Platform</title><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="generator" content="Docusaurus"/><meta name="description" content="Extension points of backend plugins"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Backend Plugin Extension Points · Backstage Software Catalog and Developer Platform"/><meta property="og:type" content="website"/><meta property="og:url" content="https://backstage.io/"/><meta property="og:description" content="Extension points of backend plugins"/><meta property="og:image" content="https://backstage.io/img/sharing-opengraph.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://backstage.io/img/twitter-summary.png"/><link rel="shortcut icon" href="/img/favicon.ico"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/monokai.min.css"/><link rel="alternate" type="application/atom+xml" href="https://backstage.io/blog/atom.xml" title="Backstage Software Catalog and Developer Platform Blog ATOM Feed"/><link rel="alternate" type="application/rss+xml" href="https://backstage.io/blog/feed.xml" title="Backstage Software Catalog and Developer Platform Blog RSS Feed"/><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-KSEVGGNCJW"></script><script>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments); }
+              gtag('js', new Date());
+              gtag('config', 'G-KSEVGGNCJW');
+            </script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Mono:500,700&amp;display=swap"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script type="text/javascript" src="https://unpkg.com/medium-zoom@1.0.6/dist/medium-zoom.min.js"></script><script type="text/javascript" src="/js/medium-zoom.js"></script><script type="text/javascript" src="/js/dismissable-banner.js"></script><script type="text/javascript" src="/js/scroll-nav-to-view-in-docs.js"></script><script src="/js/scrollSpy.js"></script><link rel="stylesheet" href="/css/main.css"/><script src="/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/"><h2 class="headerTitle">Backstage Software Catalog and Developer Platform</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://github.com/backstage/backstage" target="_self">GitHub</a></li><li class=""><a href="/docs/overview/what-is-backstage" target="_self">Docs</a></li><li class=""><a href="/plugins" target="_self">Plugins</a></li><li class=""><a href="/blog" target="_self">Blog</a></li><li class=""><a href="/docs/releases/v1.10.0" target="_self">Releases</a></li><li class=""><a href="/demos" target="_self">Demos</a></li><li class=""><a href="/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/backstage/backstage/edit/master/docs/backend-system/architecture/05-extension-points.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 id="__docusaurus" class="postHeaderTitle">Backend Plugin Extension Points</h1></header><article><div><span><p>While plugins are able to accept options for lightweight forms of customization and extension, you quickly hit a limit where you need something more powerful to allow users to extend your plugin. For this purpose, the backend system provides a mechanism for plugins to provide extension points, which can be used to expose deeper customizations for your plugin. Extension points are used by modules, which are installed in the backend adjacent to plugins. Modules are covered more in-depth in the <a href="/docs/backend-system/architecture/modules">next section</a>.</p>
+<p>Extension points are quite similar to services, in that they both encapsulate an interface in a reference object. The key difference is that extension points are registered and provided by plugins themselves, and do not have any factory associated with them. Extension points for a given plugin are also only accessible to modules that extend that same plugin.</p>
+<p>Extension points should always be exported from a plugin node library package, for example <code>@backstage/plugin-catalog-node</code>. This is to allow for modules to avoid a direct dependency on the plugin, and make it easier to evolve extension points over time. You can export as many different extension points as you want, just be mindful of the complexity of the API surface. It is however often better to export multiple extension points with few methods, rather than few extension points with many methods, as that tends to be easier to maintain.</p>
+<h2><a class="anchor" aria-hidden="true" id="defining-an-extension-point"></a><a href="#defining-an-extension-point" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Defining an Extension Point</h2>
+<p>Extension points are created using the <code>createExtensionPoint</code> method from <code>@backstage/backend-plugin-api</code>. You need to provide the type, as well as an ID.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">import</span> { createExtensionPoint } <span class="hljs-keyword">from</span> <span class="hljs-string">'@backstage/backend-plugin-api'</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">interface</span> ScaffolderActionsExtensionPoint {
+  addAction(action: ScaffolderAction): <span class="hljs-built_in">void</span>;
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> scaffolderActionsExtensionPoint =
+  createExtensionPoint&lt;ScaffolderActionsExtensionPoint&gt;({
+    id: <span class="hljs-string">'scaffolder.actions'</span>,
+  });
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="registering-an-extension-point"></a><a href="#registering-an-extension-point" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Registering an Extension Point</h2>
+<p>For modules to be able to use your extension point, an implementation of it must be registered by the plugin. This is done using the <code>registerExtensionPoint</code> method in the <code>register</code> callback of the plugin definition.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">class</span> ActionsExtension <span class="hljs-keyword">implements</span> ScaffolderActionsExtensionPoint {
+  addActions(...actions: TemplateAction&lt;<span class="hljs-built_in">any</span>&gt;[]): <span class="hljs-built_in">void</span> { ... }
+
+  getRegisteredActions() { ... }
+}
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> scaffolderPlugin = createBackendPlugin(
+  {
+    id: <span class="hljs-string">'scaffolder'</span>,
+    register(env) {
+      <span class="hljs-keyword">const</span> actionsExtensions = <span class="hljs-keyword">new</span> ActionsExtension();
+      env.registerExtensionPoint(
+        scaffolderActionsExtensionPoint,
+        actionsExtensions,
+      );
+
+      env.registerInit({
+        deps: { ... },
+        <span class="hljs-keyword">async</span> init({ ... }) {
+          <span class="hljs-keyword">const</span> actions = actionsExtension.getRegisteredActions();
+
+          <span class="hljs-comment">// Use the registered actions when setting up the scaffolder ...</span>
+        },
+      });
+    },
+  },
+);
+</code></pre>
+<p>There are a couple of things to note here. The first is that our <code>ActionsExtension</code> class both implements the <code>ScaffolderActionsExtensionPoint</code> interface, but also has additional public methods. These methods won't be available to the modules that use this extension, but we can use them here in the implementation of our plugin. Note also that the <code>ActionsExtension</code> class is <em>not</em> exported to the outside, since it's only for the internal use of this plugin during its setup phase.</p>
+<p>The second is that we create our <code>ActionsExtension</code> instance within the <code>register</code> method, and then access it directly in our <code>init</code> method. This is both safe to do and an intended convenience. All modules that extend our plugin will be completely initialized before our plugin gets initialized, which means that at the point where our <code>init</code> method is called, all actions have been added and can be accessed.</p>
+<h2><a class="anchor" aria-hidden="true" id="extension-point-design"></a><a href="#extension-point-design" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Extension Point Design</h2>
+<p>Designing the extension point interface requires careful consideration. It is a public API surface that your plugin will need to maintain over time. Keep in mind that the installation of modules is an intentional action by the user, meaning you can always design an extension point interface for additions only. For example, there is no need for the <code>scaffolderActionsExtensionPoint</code> to support removal of actions, since the user can just uninstall the module that added the action.</p>
+<p>Another pattern that can be used is a type of singleton pattern where the extension point is used to add or override some default behavior. For example, let's say the scaffolder wants to expose a way to customize the execution of template tasks. It wouldn't really make sense to allow multiple modules to each add their own task runners, so instead we use a setter to ensure that only one task runner is installed, throwing an error if any other module tries to install another task runner.</p>
+<pre><code class="hljs css language-ts"><span class="hljs-keyword">interface</span> ScaffolderTaskRunnerExtensionPoint {
+  setTaskRunner(taskRunner: TaskRunner): <span class="hljs-built_in">void</span>;
+}
+</code></pre>
+<p>If you want to make breaking changes to an extension point that already has some usage, we recommend that you instead deprecate the existing one and create a new one with a different name. You might want to use a completely new name, but you can also suffix the existing one with a version number, for example <code>scaffolderActionsV2ExtensionPoint</code>.</p>
+</span></div></article></div><div class="docLastUpdate"><em>Last updated on 1/30/2023</em></div><div class="docs-prevnext"></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#defining-an-extension-point">Defining an Extension Point</a></li><li><a href="#registering-an-extension-point">Registering an Extension Point</a></li><li><a href="#extension-point-design">Extension Point Design</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><div class="footer-title"><a href="/"><h2 class="footerLogo"></h2></a></div><div><h5>Docs</h5><a href="/docs/overview/what-is-backstage">What is Backstage?</a><a href="/docs/getting-started/">Getting started</a><a href="/docs/features/software-catalog/software-catalog-overview">Software Catalog</a><a href="/docs/plugins/create-a-plugin">Create a Plugin</a><a href="/docs/dls/design">Designing for Backstage</a></div><div><h5>Community</h5><a href="https://discord.gg/MUpMjP2">Support chatroom</a><a href="https://github.com/backstage/backstage/blob/master/CONTRIBUTING.md">Contributing</a><a href="https://backstage.spotify.com">Adopting</a><a href="https://github.com/backstage/community">Community Sessions</a><a href="https://info.backstage.spotify.com/newsletter_subscribe">Subscribe to our newsletter</a><a href="https://www.cncf.io/projects/">CNCF Incubation</a></div><div><h5>More</h5><a href="https://spotify.github.io/">Open Source @ Spotify</a><a href="https://engineering.atspotify.com/">Spotify Engineering Blog</a><a href="https://developer.spotify.com/">Spotify for Developers</a><a href="https://github.com/backstage/backstage">GitHub</a><a class="github-button" href="https://github.com/backstage/backstage" data-icon="octicon-star" data-count-href="/backstage/backstage/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a><div class="social"><a href="https://twitter.com/SpotifyEng" class="twitter-follow-button">Follow @SpotifyEng</a></div></div></section><p style="text-align:center"><a href="https://spotify.github.io">Made with ❤️ at Spotify</a></p><p class="copyright">Copyright © 2023 Backstage Project Authors. All rights reserved. The Linux Foundation has registered trademarks and uses trademarks. For a list of trademarks of The Linux Foundation, please see our Trademark Usage page: https://www.linuxfoundation.org/trademark-usage</p></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>window.twttr=(function(d,s, id){var js,fjs=d.getElementsByTagName(s)[0],t=window.twttr||{};if(d.getElementById(id))return t;js=d.createElement(s);js.id=id;js.src='https://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js, fjs);t._e = [];t.ready = function(f) {t._e.push(f);};return t;}(document, 'script', 'twitter-wjs'));</script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: '8d115c9875ba0f4feaee95bab55a1645',
+                indexName: 'backstage',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
